@@ -1,0 +1,499 @@
+{
+  "source": "live X, authorized isolated browser, no account changes",
+  "date": "2026-11-20",
+  "pages": [
+    {
+      "url": "https://x.com/lanshu/status/2122152027790926194",
+      "loadedArticles": 18,
+      "processedReplies": 17,
+      "folded": 7,
+      "rootPreserved": true,
+      "localWhitelistGesturePassed": true,
+      "replyFields": [
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        }
+      ],
+      "readyMs": 18948.4104,
+      "errors": [],
+      "toolbarBelowBody": true,
+      "nativeTextWidth": 518,
+      "scrolling": {
+        "frames": 180,
+        "p50": 16.69999999999709,
+        "p95": 16.799999999999272,
+        "max": 17,
+        "longTasks": []
+      },
+      "metrics": {
+        "scores": [
+          0.19999998807907104,
+          0.09999999403953552,
+          0,
+          0.09999999403953552,
+          0.09999999403953552,
+          0,
+          0.10000002384185791,
+          0.09999999403953552,
+          0,
+          0.09999999403953552,
+          0.09999999403953552,
+          0.10000002384185791,
+          0,
+          0,
+          0.09999999403953552,
+          0.09999999403953552,
+          0.10000002384185791
+        ],
+        "batches": [
+          0.20000001788139343,
+          0.09999999403953552,
+          0.09999999403953552,
+          0.20000001788139343,
+          0.09999999403953552,
+          0.5999999940395355,
+          4.0999999940395355,
+          1.4000000059604645,
+          3.4000000059604645,
+          17.799999982118607,
+          1.4000000059604645,
+          4,
+          3.0999999940395355,
+          1.699999988079071,
+          1.100000023841858,
+          0.5999999940395355,
+          0.800000011920929,
+          0.9000000059604645,
+          0.9000000059604645,
+          1.0999999940395355,
+          1.4000000059604645,
+          0.9000000059604645,
+          2.7999999821186066
+        ],
+        "processed": 17,
+        "started": 6726.0999999940395,
+        "readyMs": 10082.90000000596,
+        "active": 17,
+        "cacheSize": 17,
+        "threshold": 0.3,
+        "rootSeen": true
+      }
+    },
+    {
+      "url": "https://x.com/bkdgiffug/status/2120835496846770534",
+      "loadedArticles": 11,
+      "processedReplies": 8,
+      "folded": 7,
+      "rootPreserved": true,
+      "localWhitelistGesturePassed": true,
+      "replyFields": [
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": false
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": false
+        }
+      ],
+      "readyMs": 14902.513699999996,
+      "errors": [],
+      "toolbarBelowBody": true,
+      "nativeTextWidth": 518,
+      "scrolling": {
+        "frames": 180,
+        "p50": 16.69999999999891,
+        "p95": 16.899999999997817,
+        "max": 17.100000000000364,
+        "longTasks": []
+      },
+      "metrics": {
+        "scores": [
+          0.699999988079071,
+          0.19999998807907104,
+          0,
+          0.19999998807907104,
+          0.20000001788139343,
+          0.10000002384185791,
+          0.09999999403953552,
+          0.09999999403953552
+        ],
+        "batches": [
+          0.10000002384185791,
+          0.10000002384185791,
+          0.20000001788139343,
+          0.29999998211860657,
+          0.30000001192092896,
+          0.09999999403953552,
+          0.5,
+          7.299999982118607,
+          8.800000011920929,
+          0.5999999940395355,
+          1.800000011920929,
+          5.799999982118607,
+          2,
+          2.5,
+          2.2000000178813934,
+          3.5,
+          0.5999999940395355,
+          0.5999999940395355,
+          0.699999988079071,
+          2.5,
+          2.5,
+          2.800000011920929,
+          0.4000000059604645,
+          0.6000000238418579,
+          0.5999999940395355,
+          0.5999999940395355,
+          0.699999988079071,
+          0.5999999940395355,
+          0.30000001192092896,
+          1.5,
+          2.2000000178813934,
+          0.5999999940395355,
+          1.9000000059604645
+        ],
+        "processed": 8,
+        "started": 3371.5999999940395,
+        "readyMs": 9176.700000017881,
+        "active": 0,
+        "cacheSize": 8,
+        "threshold": 0.3,
+        "rootSeen": true
+      }
+    },
+    {
+      "url": "https://x.com/laopai1990/status/2119250494027976779",
+      "loadedArticles": 20,
+      "processedReplies": 16,
+      "folded": 7,
+      "rootPreserved": true,
+      "localWhitelistGesturePassed": true,
+      "replyFields": [
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": false
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": false
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": true
+        },
+        {
+          "hasOwnText": true,
+          "hasOwnAccount": true,
+          "hasHost": false
+        }
+      ],
+      "readyMs": 17667.059200000003,
+      "errors": [],
+      "toolbarBelowBody": true,
+      "nativeTextWidth": 518,
+      "scrolling": {
+        "frames": 180,
+        "p50": 16.700000000000728,
+        "p95": 16.799999999999272,
+        "max": 83.29999999999927,
+        "longTasks": [
+          55
+        ]
+      },
+      "metrics": {
+        "scores": [
+          0.20000001788139343,
+          0,
+          0.09999999403953552,
+          0,
+          0,
+          0,
+          0.09999999403953552,
+          0.09999999403953552,
+          0.20000001788139343,
+          0,
+          0.10000002384185791,
+          0.09999999403953552,
+          0,
+          0,
+          0.09999999403953552,
+          0.20000001788139343,
+          0.19999998807907104,
+          0.09999999403953552,
+          0.09999999403953552,
+          0.30000001192092896,
+          0.19999998807907104,
+          0.19999998807907104,
+          0.5
+        ],
+        "batches": [
+          0.20000001788139343,
+          0,
+          0.09999999403953552,
+          0.4000000059604645,
+          0.4000000059604645,
+          0.5999999940395355,
+          2.7999999821186066,
+          0.5,
+          2.800000011920929,
+          1.9000000059604645,
+          2.4000000059604645,
+          1.9000000059604645,
+          1.4000000059604645,
+          2.199999988079071,
+          1.0999999940395355,
+          2.9000000059604645,
+          1,
+          2.699999988079071,
+          0.699999988079071,
+          0.7000000178813934,
+          0.7000000178813934,
+          0.8999999761581421,
+          0.6000000238418579,
+          0.29999998211860657,
+          0.4000000059604645,
+          0.9000000059604645,
+          1.0999999940395355,
+          0.7000000178813934,
+          0.9000000059604645,
+          0.800000011920929,
+          0.9000000059604645,
+          1.600000023841858,
+          1.5,
+          1.7999999821186066,
+          0.7999999821186066,
+          0.7999999821186066,
+          2.2999999821186066,
+          2,
+          1.4000000059604645,
+          3.7000000178813934,
+          0.8999999761581421,
+          1.4000000059604645,
+          2,
+          1,
+          0.800000011920929,
+          0.9000000059604645,
+          0.4000000059604645,
+          0.5999999940395355,
+          0.9000000059604645,
+          3.199999988079071,
+          1.800000011920929,
+          2.4000000059604645,
+          1.399999976158142
+        ],
+        "processed": 25,
+        "started": 6045.4000000059605,
+        "readyMs": 9178.199999988079,
+        "active": 10,
+        "cacheSize": 23,
+        "threshold": 0.3,
+        "rootSeen": true
+      }
+    }
+  ],
+  "failures": [],
+  "accountMutationRequests": 0
+}

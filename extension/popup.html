@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>留白 · 回复过滤</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+  <header><div class="identity"><img src="icons/48.png" width="38" height="38" alt=""><div><h1>留白<span>REPLY SIEVE</span></h1><p>把注意力，留给值得读的回复。</p></div></div><label class="switch" title="启用回复过滤"><input id="enabled" type="checkbox" aria-label="启用回复过滤"><span></span></label></header>
+  <main>
+    <section class="strength" aria-labelledby="strength-title">
+      <div class="section-top"><h2 id="strength-title">折叠强度</h2><span class="status"><i></i><span id="status-text">读取设置</span></span></div>
+      <div class="strength-title"><strong id="strength-name">激进</strong><span id="strength-caption">多收起一些，想看再展开。</span></div>
+      <div class="presets" role="group" aria-label="折叠强度预设"><button data-threshold="0.7304868345052445">保守</button><button data-threshold="0.45">标准</button><button data-threshold="0.30">激进</button></div>
+      <label class="sr-only" for="intensity">微调折叠强度，越右折叠越多</label><input id="intensity" type="range" min="5" max="95" step="1" value="70">
+      <div class="range-labels"><span>少折叠</span><span>多折叠</span></div>
+      <p class="note">只影响回复。原帖保留，每条都能展开。</p>
+    </section>
+    <section class="white" aria-labelledby="white-title"><div class="section-top"><h2 id="white-title">总是保留</h2><span id="white-count" class="count">0</span></div><p class="description">白名单里的账号，跳过模型折叠。</p>
+      <form id="white-form"><label class="sr-only" for="account">X 用户名</label><span class="at">@</span><input id="account" maxlength="16" autocomplete="off" spellcheck="false" placeholder="输入用户名"><button type="submit" aria-label="添加白名单">添加</button></form>
+      <div id="white-list"></div>
+    </section>
+    <section class="feedback"><div><h2>你的纠错，留在本机</h2><p>已记录 <strong id="feedback-count">0</strong> 条 · 不会自动训练</p></div><button id="export">导出反馈<span aria-hidden="true"> ↗</span></button></section>
+    <p id="message" role="status" aria-live="polite"></p>
+  </main>
+  <footer><span><i></i> 本地处理 · 无需联网</span><a href="help.html" target="_blank">使用说明 ↗</a></footer>
+  <script src="popup.js"></script>
+</body></html>

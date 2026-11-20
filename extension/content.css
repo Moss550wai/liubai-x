@@ -1,0 +1,27 @@
+article[data-rs-managed]{position:relative;padding-bottom:calc(var(--rs-original-bottom,0px) + var(--rs-toolbar-height,42px))!important}
+article[data-rs-folded]>:not([data-rs-host]){display:none!important}
+article[data-rs-folded]{min-height:0!important}
+[data-rs-host]{all:initial;display:block!important;position:absolute;inset:auto 0 0;isolation:isolate;width:100%;font:12px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;color:var(--rs-ink,#536471)}
+[data-rs-host] *{box-sizing:border-box}
+[data-rs-host] [hidden]{display:none!important}
+[data-rs-host] .bar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:7px 16px 7px 56px;min-height:38px}
+[data-rs-host] .summary{display:flex;align-items:center;gap:7px;margin-right:auto;font-size:12px;min-width:90px}
+[data-rs-host] .mark{width:12px;height:12px;opacity:.7;flex-shrink:0}
+[data-rs-host] .actions{display:flex;gap:2px;align-items:center;flex-wrap:wrap}
+[data-rs-host] button{font:inherit;cursor:pointer;border:0;border-radius:20px;background:none;color:var(--rs-ink,#536471);padding:5px 8px;min-height:28px;line-height:1.25;white-space:nowrap}
+[data-rs-host] button:hover{background:var(--rs-hover,#eff3f4)}
+[data-rs-host] button:focus-visible{outline:2px solid #308459;outline-offset:1px}
+[data-rs-host] button:disabled{opacity:.5;cursor:wait}
+[data-rs-host] .primary{color:var(--rs-accent,#216746);font-weight:600}
+[data-rs-host] .feedback{font-size:11px}
+[data-rs-host] .message{flex-basis:100%;font-size:11px;padding-top:3px;color:var(--rs-accent,#216746)}
+[data-rs-host] .message:empty{display:none}
+[data-rs-host] .error{color:var(--rs-danger,#b6363e)}
+[data-rs-host] .unfolded{padding-top:0;padding-bottom:5px;min-height:26px}
+[data-rs-host] .unfolded .summary{font-size:11px;opacity:.55}
+[data-rs-host] .unfolded .actions>button{font-size:11px;padding:4px 7px;min-height:25px}
+@media(max-width:450px){
+ [data-rs-host] .bar{padding-left:16px;gap:3px}
+ [data-rs-host] .summary{font-size:11px}
+ [data-rs-host] button{padding:5px 7px}
+}

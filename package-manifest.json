@@ -1,0 +1,97 @@
+{
+  "version": "1.0.0",
+  "archive": "liubai-chrome-edge-v1.zip",
+  "archive_bytes": 117571,
+  "archive_sha256": "08ff032c118a7628c4f2b72efe7360c6ec97794fdbd2e78f8bdaf96e93a5c625",
+  "files": [
+    {
+      "path": "extension/background.js",
+      "bytes": 3696,
+      "sha256": "80d25d5e27c008abd1b203a8f3ef48b162e1ceceb622aa5bb044278540f2fc5e"
+    },
+    {
+      "path": "extension/content.css",
+      "bytes": 2067,
+      "sha256": "5b7dc312f9658a9a5fa06b2705934e877b1cd7dc71d7f8df728d33f451f9b2b0"
+    },
+    {
+      "path": "extension/content.js",
+      "bytes": 14172,
+      "sha256": "1d4e1617047c284851cc2de019b0564e9396c44d0147314a0a6e2ea3c3631d20"
+    },
+    {
+      "path": "extension/help.css",
+      "bytes": 1262,
+      "sha256": "87658ad29f5569d4a7cb5f0d133677aed770d70c23171b1cefdbe0a78cf0f37f"
+    },
+    {
+      "path": "extension/help.html",
+      "bytes": 2497,
+      "sha256": "59de9f4e8666eb7f335f77d3fbe3a366f6bc0743aefe58a81ccd50149e0ad6f2"
+    },
+    {
+      "path": "extension/icons/128.png",
+      "bytes": 3431,
+      "sha256": "69be9eaabeed8530acd018b7142612c11ff1d55e3cf55b7998ddc23468b9da52"
+    },
+    {
+      "path": "extension/icons/16.png",
+      "bytes": 600,
+      "sha256": "12e57e64e5b20614b24334dd76ebdd5493b50d219c03c70320dd2f2d45853d44"
+    },
+    {
+      "path": "extension/icons/48.png",
+      "bytes": 1407,
+      "sha256": "e752fde92cdafcb675792383e4e4b44f7024dfdbc172bbd21c311eb1e3f02256"
+    },
+    {
+      "path": "extension/manifest.json",
+      "bytes": 798,
+      "sha256": "68b2d9b099d4c3aed30ae36007e92782569b8cc53755b80d63842649fc76a4ef"
+    },
+    {
+      "path": "extension/model-data.js",
+      "bytes": 294244,
+      "sha256": "9a5a1cb600d657ec6f9e13b81c85e0f498b5992f34ab8fe82e2a9317ed3df2e3"
+    },
+    {
+      "path": "extension/popup.css",
+      "bytes": 5352,
+      "sha256": "eb15a3b0df33e79cc75edf9b0632569890ed4f9cc368d1394378bc0ddfb4c7ff"
+    },
+    {
+      "path": "extension/popup.html",
+      "bytes": 2584,
+      "sha256": "fbbff396a905387fccb102b0f7940f12e08387836112567c0e675d7d0f448d1a"
+    },
+    {
+      "path": "extension/popup.js",
+      "bytes": 3894,
+      "sha256": "bef8cecc000b9a94939d29ec46fb8934d55c88803cb035ae596be04b9e2aee92"
+    },
+    {
+      "path": "extension/scorer.js",
+      "bytes": 1544,
+      "sha256": "b396f2a9feb9fb40e626697c72ab1bb12c45c2754d787b94652dd16c051143ee"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3013,
+      "sha256": "d2fe9f64f9ea81f6a4a13f4545dca2f871b4c07fb16df1d8a1a42c386a93bed3"
+    },
+    {
+      "path": "thresholds.md",
+      "bytes": 2733,
+      "sha256": "968ec46699f103bb865a8eb7222be13c8ad7cd8c424e2c29105935266b410d41"
+    },
+    {
+      "path": "test-report.md",
+      "bytes": 6592,
+      "sha256": "03ca5544abe31200466557f1b5209e396210d8dd574337a6f82d9f24e7323b10"
+    }
+  ],
+  "no_training": true,
+  "no_remote_inference": true,
+  "no_account_blocking": true,
+  "model_source_sha256": "af671420a645e4bbba5a2d39ae1b1fd566d689727bd12f435352ca0ff62acb45"
+}
