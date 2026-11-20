@@ -1,8 +1,8 @@
 (() => {
   'use strict';
   const HOST='[data-rs-host]',ARTICLE='article[data-testid="tweet"]';
-  const states=new Map(),pending=new Set(),cache=new Map(),expanded=new Map(),knownReplies=new Map();
-  let settings={enabled:false,threshold:.30,whitelist:[]},route='',rootSeen=false,rootNode=null,rootAccount='',discoverySeen=false,scheduled=false,dead=false;
+  const states=new Map(),pending=new Set(),cache=new Map(),expanded=new Map(),knownReplies=new Map(),parents=new Map(),authorReplies=new Set();
+  let settings={enabled:false,threshold:.30,whitelist:[]},route='',rootSeen=false,rootNode=null,rootAccount='',discoverySeen=false,scheduled=false,dead=false,relationsDirty=false;
   const metrics={scores:[],batches:[],processed:0,started:performance.now(),readyMs:null};
   const owners=new WeakMap(),sizes=new ResizeObserver(entries=>{for(const entry of entries){const article=owners.get(entry.target);if(article?.isConnected)article.style.setProperty('--rs-toolbar-height',Math.ceil(entry.borderBoxSize?.[0]?.blockSize||entry.contentRect.height)+'px')}});
 
@@ -44,14 +44,29 @@
     // Older ancestors in the thread must never be treated as replies.
     if(BigInt(data.id)<=BigInt(id))return false;
     if(rootNode?.isConnected&&!(rootNode.compareDocumentPosition(article)&Node.DOCUMENT_POSITION_FOLLOWING))return false;
-    if(!rootSeen||!rootAccount||data.account===rootAccount)return false;
+    if(!rootSeen||!rootAccount)return false;
     if(discoverySeen&&!boundaries.length&&!knownReplies.has(data.id))return false;
     if(boundaries.some(n=>n.compareDocumentPosition(article)&Node.DOCUMENT_POSITION_FOLLOWING))return false;
     return true;
   }
   function forget(article) {const old=states.get(article);if(old){sizes.unobserve(old.host);article.removeAttribute('data-rs-folded');article.removeAttribute('data-rs-managed');article.style.removeProperty('--rs-toolbar-height');article.style.removeProperty('--rs-original-bottom');old.host.remove();states.delete(article)}}
-  function reset(){for(const a of states.keys())forget(a);pending.clear();knownReplies.clear();rootSeen=false;rootNode=null;rootAccount='';discoverySeen=false}
+  function requestParents(){window.postMessage({channel:'liubai:parents:v1',request:true,path:location.pathname},location.origin)}
+  function reset(){for(const a of states.keys())forget(a);pending.clear();knownReplies.clear();parents.clear();authorReplies.clear();relationsDirty=false;rootSeen=false;rootNode=null;rootAccount='';discoverySeen=false;requestParents()}
   function remember(map,key,value,limit){map.delete(key);map.set(key,value);if(map.size>limit)map.delete(map.keys().next().value)}
+  function queueAuthors(){for(const a of authorReplies){if(a.isConnected)pending.add(a);else authorReplies.delete(a)}if(pending.size)schedule()}
+  function foldReason(data,score) {
+    if(settings.whitelist.includes(data.account))return '';
+    if(data.account!==rootAccount)return score>=settings.threshold?'model':'';
+    let id=parents.get(data.id);
+    // shortcut: unknown or evicted parents stay visible; no adjacency-based guesses.
+    for(let depth=0;id&&depth<100;depth++) {
+      const parent=knownReplies.get(id);
+      if(!parent||expanded.get(id)||settings.whitelist.includes(parent.account))return '';
+      if(parent.account!==rootAccount)return parent.score>=settings.threshold?'parent_folded':'';
+      id=parents.get(id);
+    }
+    return '';
+  }
   function notice(state,text,error=false){const p=state.host.querySelector('.message');p.textContent=text;p.classList.toggle('error',error)}
   function palette() {
     let c=getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g);
@@ -72,39 +87,45 @@
     applyPalette(state,colors);
     // Isolate gestures; mouse focus can move X replies, while keyboard focus stays available.
     for(const type of ['click','dblclick','auxclick','pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','keydown','keyup'])host.addEventListener(type,event=>{event.stopPropagation();if(type==='pointerdown'&&event.pointerType==='mouse'&&event.target.closest('button'))event.preventDefault()});
-    controls.querySelector('.toggle').onclick=()=>{remember(expanded,data.id,!expanded.get(data.id),1000);render(state)};
+    controls.querySelector('.toggle').onclick=()=>{remember(expanded,data.id,!expanded.get(data.id),1000);render(state);queueAuthors()};
     controls.querySelector('.white').onclick=async event=>{
       const button=event.currentTarget;button.disabled=true;
       try{const result=await request({type:'white-add',account:data.account});settings=result.settings;refresh()}catch(error){notice(state,error.message,true)}finally{button.disabled=false}
     };
     controls.querySelector('.feedback').onclick=async event=>{
       const button=event.currentTarget;button.disabled=true;
-      try{await request({type:'feedback',...data,score,threshold:settings.threshold});state.feedback=true;remember(expanded,data.id,true,1000);render(state);notice(state,'已展开，纠错记录仅保存在本机。')}catch(error){notice(state,error.message,true)}finally{button.disabled=state.feedback}
+      try{await request({type:'feedback',...data,score,threshold:settings.threshold,foldReason:foldReason(data,score),parentId:parents.get(data.id)});state.feedback=true;remember(expanded,data.id,true,1000);render(state);queueAuthors();notice(state,'已展开，纠错记录仅保存在本机。')}catch(error){notice(state,error.message,true)}finally{button.disabled=state.feedback}
     };
     return state;
   }
   function render(state) {
-    const {article,data,host,score,bar}=state,hit=score>=settings.threshold&&!settings.whitelist.includes(data.account);
+    const {article,data,host,score,bar}=state,reason=foldReason(data,score),hit=!!reason;
     if(!hit){forget(article);return}
     const folded=!expanded.get(data.id);
     article.toggleAttribute('data-rs-folded',folded);bar.classList.toggle('unfolded',!folded);
-    host.querySelector('.label').textContent=(folded?'已收起 @':'已展开 @')+data.account+' 的回复';
+    host.querySelector('.label').textContent=(folded?(reason==='parent_folded'?'随上级收起 @':'已收起 @'):'已展开 @')+data.account+' 的回复';
     const toggle=host.querySelector('.toggle');toggle.hidden=!hit;toggle.textContent=folded?'展开':'收起';toggle.setAttribute('aria-expanded',String(!folded));
     const feedback=host.querySelector('.feedback');feedback.hidden=!hit;feedback.textContent=state.feedback?'已记下':'不该折叠';feedback.disabled=state.feedback;
     const whiteButton=host.querySelector('.white');whiteButton.setAttribute('aria-label','总是保留 @'+data.account);whiteButton.title='总是保留 @'+data.account;
     host.setAttribute('data-rs-state',folded?'folded':'expanded');
   }
   function process(article,data,id,boundaries,colors,bottom) {
-    if(!article.isConnected){forget(article);return}
-    if(!settings.enabled||!eligible(article,data,id,boundaries)){forget(article);return}
-    remember(knownReplies,data.id,true,2000);
+    if(!article.isConnected){authorReplies.delete(article);forget(article);return}
+    if(!settings.enabled||!eligible(article,data,id,boundaries)){authorReplies.delete(article);forget(article);return}
+    if(data.account===rootAccount)authorReplies.add(article);else authorReplies.delete(article);
+    if(data.account===rootAccount&&!foldReason(data,0)){
+      if(knownReplies.get(data.id)?.account!==data.account){remember(knownReplies,data.id,{account:data.account,score:0},2000);relationsDirty=true}
+      forget(article);return;
+    }
     const old=states.get(article);
     // Visibility and link wrapping can change whitespace; keep the focused controls.
-    if(old&&old.data.id===data.id&&old.data.modelKey===data.modelKey&&old.data.account===data.account&&old.host.isConnected){Object.assign(old.data,data);return}
+    if(old&&old.data.id===data.id&&old.data.modelKey===data.modelKey&&old.data.account===data.account&&old.host.isConnected){Object.assign(old.data,data);render(old);return}
     forget(article);
     let score=cache.get(data.modelKey);
     if(score===undefined){const start=performance.now();score=ReplyScorer.score(data.modelText);if(metrics.scores.length<5000)metrics.scores.push(performance.now()-start);remember(cache,data.modelKey,score,1000)}
-    if(score<settings.threshold||settings.whitelist.includes(data.account))return;
+    const previous=knownReplies.get(data.id);
+    if(!previous||previous.score!==score||previous.account!==data.account){remember(knownReplies,data.id,{account:data.account,score},2000);relationsDirty=true}
+    if(!foldReason(data,score))return;
     const state=make(article,data,score,colors,bottom);render(state);metrics.processed++;
   }
   function flush() {
@@ -125,11 +146,25 @@
     if(metrics.batches.length<5000)metrics.batches.push(performance.now()-start);
     if(metrics.readyMs===null&&states.size)metrics.readyMs=performance.now()-metrics.started;
     for(const article of states.keys())if(!article.isConnected)forget(article);
+    if(relationsDirty){relationsDirty=false;queueAuthors()}
     if(pending.size)schedule();
   }
   function schedule(){if(!scheduled&&!dead){scheduled=true;setTimeout(flush,0)}}
   function scan(){if(rootId()&&settings.enabled){document.querySelectorAll('[data-testid="primaryColumn"] '+ARTICLE).forEach(a=>pending.add(a));schedule()}}
-  function refresh(){if(!settings.enabled){reset();return}for(const state of states.values())render(state);scan()}
+  function refresh(){if(!settings.enabled){reset();return}for(const state of states.values())render(state);requestParents();scan()}
+  window.addEventListener('message',event=>{
+    const msg=event.data;
+    if(dead||event.source!==window||event.origin!==location.origin||msg?.channel!=='liubai:parents:v1'||msg.path!==location.pathname||!Array.isArray(msg.pairs)||msg.pairs.length>4000)return;
+    if(route!==location.pathname){reset();route=location.pathname;scan()}
+    let changed=false;
+    for(const pair of msg.pairs){
+      if(!Array.isArray(pair)||pair.length!==2)continue;
+      const [id,parent]=pair;
+      if(typeof id!=='string'||typeof parent!=='string'||!/^\d{1,24}$/.test(id)||!/^\d{1,24}$/.test(parent)||BigInt(parent)>=BigInt(id))continue;
+      if(parents.get(id)!==parent){remember(parents,id,parent,4000);changed=true}
+    }
+    if(changed)queueAuthors();
+  });
   const observer=new MutationObserver(records=>{
     if(!settings.enabled||!rootId())return;
     let rescan=false;
@@ -155,5 +190,5 @@
   function shutdown(){clearInterval(routeTimer);observer.disconnect();themeObserver.disconnect();sizes.disconnect();colorScheme.removeEventListener('change',recolor);dead=true;reset()}
   window.addEventListener('pagehide',event=>{if(!event.persisted)shutdown()});
   window.addEventListener('pageshow',event=>{if(event.persisted)request({type:'get'}).then(result=>{settings=result.settings;refresh();recolor()}).catch(shutdown)});
-  request({type:'get'}).then(result=>{settings=result.settings;route=location.pathname;scan()}).catch(shutdown);
+  request({type:'get'}).then(result=>{settings=result.settings;route=location.pathname;requestParents();scan()}).catch(shutdown);
 })();

@@ -41,10 +41,14 @@ async function receive(message,sender) {
     let url;
     try{url=new URL(message.url)}catch{throw Error('回复链接无效')}
     if(!['x.com','twitter.com'].includes(url.hostname)||url.protocol!=='https:'||url.username||url.password||!new RegExp('^/'+account+'/status/\\d+$','i').test(url.pathname))throw Error('回复账号与链接不一致');
+    const foldReason=message.foldReason||'model';
+    if(!['model','parent_folded'].includes(foldReason))throw Error('折叠原因无效');
+    const parentId=foldReason==='parent_folded'?message.parentId:null;
+    if(foldReason==='parent_folded'&&(typeof parentId!=='string'||!/^\d{1,24}$/.test(parentId)||BigInt(parentId)>=BigInt(url.pathname.split('/').pop())))throw Error('上级回复无效');
     const {feedback=[]}=await chrome.storage.local.get('feedback');
     const key=url.origin+url.pathname;
     if(!feedback.some(f=>f.url===key&&f.label==='保留'&&f.text===message.text)) {
-      feedback.push({id:crypto.randomUUID(),createdAt:new Date().toISOString(),text:message.text,account,url:key,label:'保留',modelScore:message.score,threshold:message.threshold});
+      feedback.push({id:crypto.randomUUID(),createdAt:new Date().toISOString(),text:message.text,account,url:key,label:'保留',modelScore:message.score,threshold:message.threshold,foldReason,parentId});
       try{await chrome.storage.local.set({feedback})}catch{throw Error('保存失败：请先导出反馈，检查浏览器存储空间')}
     }
     return state();

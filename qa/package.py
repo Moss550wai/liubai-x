@@ -7,6 +7,7 @@ manifest=json.loads((EXT/'manifest.json').read_text(encoding='utf-8'))
 q=json.loads((ROOT/'qa-results.json').read_text(encoding='utf-8'))
 assert not q.get('failure') and not q['errors']
 assert any('root-author replies' in s for s in q['checks'])
+assert any('exact folded parents' in s for s in q['checks'])
 assert manifest['permissions']==['storage']
 version=manifest['version']
 assert (EXT/'model-data.js').read_text(encoding='utf-8').find('af671420a645e4bbba5a2d39ae1b1fd566d689727bd12f435352ca0ff62acb45')>=0
@@ -17,15 +18,17 @@ report=f'''# 留白 {version} 回归记录
 
 ## 行为
 
-父帖作者在评分前豁免。识别依赖当前详情页帖子的账号头部，与父帖正文是否可读无关；没有作者信息时先保留，异步头部到达后重新处理。作者在父帖滚出页面后仍保留，切换详情页时清空。引用卡片作者不作为父帖作者。
+父帖作者默认豁免，但回复了已折叠内容时随上级收起。父子关系仅来自 X 已请求的 TweetDetail 响应，不新增请求；只跨页面脚本边界传递 ID，不保存响应正文或凭证。上级展开、阈值改变或加入白名单时联动恢复；作者接话也能单独展开。关系或上级评分未知时保留，不按相邻位置猜。当前帖评分最多缓存 2,000 条、父子 ID 最多缓存 4,000 对。普通其他账号继续独立按模型判断。
 
-模型放行、白名单、父帖作者回复不插入工具条，也不加底部占位；折叠项有展开、纠错、保留账号入口。用户主动展开的命中项保留收起入口，提示文字为“已展开”，不显示“留白”品牌标记。
+作者识别依赖当前详情页帖子的账号头部，与父帖正文是否可读无关；没有作者信息时先保留，异步头部到达后重新处理。父帖滚出页面后仍记住作者，切换详情页时清空。引用卡片作者不作为父帖作者。
+
+普通保留项和白名单不插入工具条，也不加底部占位；模型命中及随上级收起项有展开、纠错、保留账号入口。用户主动展开的命中项保留收起入口，提示文字为“已展开”，不显示“留白”品牌标记。反馈增加折叠原因和上级 ID，保留接话自身的分数，兼容旧记录。
 
 ## 本版检查
 
 隔离 Chromium {q['environment']['chromium']}，{q['environment']['cpu']}，无真实 X 请求、无账号凭证。共 {len(q['checks'])} 项检查通过，零页面运行错误。
 
-检查包含作者大小写、父帖离开 DOM、详情页换作者、纯媒体父帖、延迟账号头部、引用账号排除、正常回复零占位、白名单恢复原样、DOM 复用、鼠标键盘、深浅主题和窄屏。没有替用户填写真实回复标签。
+检查包含早到响应、fetch/XHR 父子关系、连续作者接话、展开及阈值联动、白名单覆盖、上级离开 DOM、换帖重建、未知及非法关系保留，以及作者大小写、纯媒体父帖、延迟账号头部、引用账号排除、正常回复零占位、DOM 复用、鼠标键盘、深浅主题和窄屏。没有替用户填写真实回复标签。另有 qa/parents-bridge.cjs 检查早到 ID 的重放、响应原样返回和跨页面消息不含正文或凭证。
 
 | 测量 | 本次结果 |
 |---|---:|
@@ -45,7 +48,7 @@ live-results.json 和 screenshots/live-*.png 属于 1.0.0 的实机记录，本�
 
 ## Git
 
-修改前快照：v1.0.0（5ed4ca1）。本版提交后标记 v{version}，回退方法见 CHANGELOG.md。
+修改前快照：v1.0.1（6471b09）；更早版本 v1.0.0（5ed4ca1）亦保留。本版提交后标记 v{version}，回退方法见 CHANGELOG.md。
 
 检查明细：
 

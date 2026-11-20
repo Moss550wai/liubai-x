@@ -31,8 +31,11 @@ async function scroll(page){
   await context.addInitScript(observeStartup);
   context.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
   await context.route('https://x.com/**',route=>{
+   const url=new URL(route.request().url());
+   if(url.pathname.startsWith('/i/api/graphql/fixture/'))return route.fulfill({contentType:'application/json',body:JSON.stringify({data:{entries:JSON.parse(url.searchParams.get('pairs')||'[]').map(([id,parent])=>({tweet_results:{result:{rest_id:id,legacy:{in_reply_to_status_id_str:parent,full_text:'body stays in page response only'}}}}))}})});
    let body=html(route.request().url().includes('loadtest')?600:0);
    if(route.request().url().includes('root-metadata'))body=body.replace(article(rows[1]),article({...rows[1],missing:true,quote:true}).replace('data-testid="User-Name"','data-testid="pending-name"'));
+   if(url.searchParams.has('parents-early'))body=body.replace('</head>','<script>fetch("/i/api/graphql/fixture/TweetDetail?pairs='+encodeURIComponent(JSON.stringify([['1007','1001'],['1008','1000']]))+'")</script></head>');
    return route.fulfill({contentType:'text/html',body});
   });
   context.on('request',r=>{if(/^https?:/.test(r.url()))remote.push(r.url())});
@@ -73,6 +76,46 @@ async function scroll(page){
    for(const n of [1007,1008])assert.equal(await metadata.locator('[data-fixture-id="'+n+'"] [data-rs-host]').count(),0);
    await metadata.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),article({id:'1012',account:'quoteauthor',text:rows[2].text}));
    await metadata.locator('[data-fixture-id="1012"] [data-rs-host]').waitFor();await metadata.close();
+  });
+  await check('root-author replies follow exact folded parents; native thread posts and other users stay independent',async()=>{
+   const thread=await context.newPage();await thread.goto('https://x.com/testauthor/status/1000?parents-early');
+   const t=n=>thread.locator('[data-fixture-id="'+n+'"]'),h=n=>t(n).locator('[data-rs-host]');
+   const parents=async(pairs,xhr=false,endpoint='TweetDetail')=>thread.evaluate(async({pairs,xhr,endpoint})=>{
+    const url='/i/api/graphql/fixture/'+endpoint+'?pairs='+encodeURIComponent(JSON.stringify(pairs));
+    const body=xhr?await new Promise((resolve,reject)=>{const r=new XMLHttpRequest();r.open('GET',url);r.responseType='json';r.onload=()=>resolve(r.response);r.onerror=reject;r.send()}):await (await fetch(url)).json();
+    return body.data.entries.length;
+   },{pairs,xhr,endpoint});
+   const absent=async n=>thread.waitForFunction(n=>!document.querySelector('[data-fixture-id="'+n+'"] [data-rs-host]'),n);
+   await h(1007).getByText('随上级收起 @testauthor 的回复',{exact:true}).waitFor();assert.equal(await h(1008).count(),0);
+   await thread.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),[
+    {id:'1013',account:'another_reader',text:'哈哈哈'},
+    {id:'1014',account:'testauthor',text:'哈哈哈'},
+    {id:'1015',account:'TESTAUTHOR',text:'哈哈哈'},
+    {id:'1016',account:'testauthor',text:rows[2].text},
+    {id:'1017',account:'testauthor',text:rows[2].text},
+    {id:'1018',account:'testauthor',text:'哈哈哈'},
+   ].map(article).join(''));
+   assert.equal(await parents([['1013','1001'],['1014','1002'],['1015','1007'],['1017','1008']]),4);
+   await h(1015).waitFor();for(const n of [1013,1014,1016,1017])assert.equal(await h(n).count(),0);
+   assert.equal(await parents([['1018','1001']],true),1);await h(1018).waitFor();
+   await h(1015).getByRole('button',{name:'展开',exact:true}).click();assert.equal(await t(1015).locator('.tweet').isVisible(),true);await h(1015).getByRole('button',{name:'收起',exact:true}).click();
+   await h(1001).getByRole('button',{name:'展开',exact:true}).click();for(const n of [1007,1015,1018])await absent(n);
+   await h(1001).getByRole('button',{name:'收起',exact:true}).click();for(const n of [1007,1015,1018])await h(n).waitFor();
+   await set({threshold:.95});await absent(1007);await set({threshold:.30});await h(1007).waitFor();
+   await message({type:'white-add',account:'example_ai'});await absent(1007);await message({type:'white-remove',account:'example_ai'});await h(1007).waitFor();
+   await message({type:'white-add',account:'testauthor'});await absent(1007);await message({type:'white-remove',account:'testauthor'});await h(1007).waitFor();
+   await t(1001).evaluate(a=>a.remove());await thread.waitForTimeout(80);assert.equal(await t(1007).getAttribute('data-rs-folded'),'');
+   await t(1000).evaluate((n,markup)=>n.insertAdjacentHTML('afterend',markup),article(rows[2]));await h(1001).waitFor();
+   await parents([['1016','1001']],false,'OtherOperation');await thread.waitForTimeout(80);assert.equal(await h(1016).count(),0);
+   await thread.evaluate(()=>{for(const message of [{path:'/wrong',pairs:[['1016','1001']]},{path:location.pathname,pairs:[['1016','1016'],['1016',1001]]}])window.postMessage({channel:'liubai:parents:v1',...message},location.origin)});await thread.waitForTimeout(80);assert.equal(await h(1016).count(),0);
+   const before=(await get()).feedbackCount;await h(1018).getByRole('button',{name:'不该折叠',exact:true}).click();await h(1018).getByText('已展开，纠错记录仅保存在本机。',{exact:true}).waitFor();
+   const exported=await message({type:'export'}),feedback=exported.feedback.find(f=>f.url.endsWith('/1018'));assert.equal(feedback.foldReason,'parent_folded');assert.equal(feedback.parentId,'1001');assert.ok(Math.abs(feedback.modelScore-scorer.score('哈哈哈'))<1e-6);
+   assert.equal(exported.feedback.length,before+1);
+   // Keep the existing feedback checks isolated from this separate synthetic thread.
+   await worker.evaluate(()=>chrome.storage.local.set({feedback:[]}));
+   await thread.evaluate(()=>history.pushState({},'','/helpful_dev/status/1003'));await h(1007).getByText('已收起 @testauthor 的回复',{exact:true}).waitFor();await absent(1015);
+   await thread.evaluate(()=>history.pushState({},'','/testauthor/status/1000'));await h(1007).getByText('随上级收起 @testauthor 的回复',{exact:true}).waitFor();
+   await thread.screenshot({path:path.join(out,'screenshots/author-parent-folds.png'),fullPage:true});await thread.close();
   });
   await page.screenshot({path:path.join(out,'screenshots/replies-folded.png'),fullPage:true});
   await check('one-click expand and refold retain original content',async()=>{
@@ -178,7 +221,7 @@ async function scroll(page){
    const bare=await baseline.newPage();await bare.goto('https://x.com/testauthor/status/1000?loadtest');await bare.waitForLoadState('load');
    await bare.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));const nav=await bare.evaluate(()=>performance.getEntriesByType('navigation')[0].toJSON());result.withoutExtension={navigation:{domContentLoadedMs:nav.domContentLoadedEventEnd,loadMs:nav.loadEventEnd},startupLongTasks:await bare.evaluate(()=>window.__rsQALongTasks),scroll:await scroll(bare)};
   }finally{await baseline.close()}
-  result.httpRequests=remote;assert.ok(remote.every(u=>['/testauthor/status/1000','/i/web/status/1000'].includes(new URL(u).pathname)));assert.deepEqual(errors,[]);checks.push('no runtime errors or extension-created remote service calls in offline fixtures');
+  result.httpRequests=remote;assert.ok(remote.every(u=>['/testauthor/status/1000','/i/web/status/1000'].includes(new URL(u).pathname)||new URL(u).pathname.startsWith('/i/api/graphql/fixture/')));assert.deepEqual(errors,[]);checks.push('no runtime errors or extension-created remote service calls in offline fixtures');
   fs.writeFileSync(path.join(out,'qa-results.json'),JSON.stringify(result,null,2));console.log(JSON.stringify({checks:checks.length,inference:result.inferenceMs,batch:result.processingBatchMs,scroll:result.scroll.frameMs,ready:result.largePageReadyMs}));
  }finally{await context.close()}
 })().catch(error=>{result.failure=error.stack;fs.writeFileSync(path.join(out,'qa-results.json'),JSON.stringify(result,null,2));console.error(error);process.exitCode=1});
