@@ -1,0 +1,43 @@
+{
+  "version": "1.0.3",
+  "date": "2026-11-20T06:47:41.324Z",
+  "source": "https://x.com/lanshu/status/2122152027790926194",
+  "browser": "isolated Chromium",
+  "read_only": true,
+  "initial": {
+    "label": "已收起 8 条回复",
+    "buttons": 1,
+    "entries": 0,
+    "last": true,
+    "hiddenCells": 8
+  },
+  "layout": {
+    "hiddenHeights": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "largestGapPx": 0,
+    "inlineControls": 0
+  },
+  "opened": {
+    "expanded": "true",
+    "entries": 8,
+    "allHaveText": true
+  },
+  "pageErrors": [
+    "ApiError: https://x.com/i/api/graphql/ubfbnAM4qTlMTOYleYhXSg/UsersByRestIds HTTP-403 codes:[1003]",
+    "ApiError: https://x.com/i/api/graphql/ubfbnAM4qTlMTOYleYhXSg/UsersByRestIds HTTP-403 codes:[1003]",
+    "ApiError: https://x.com/i/api/graphql/ubfbnAM4qTlMTOYleYhXSg/UsersByRestIds HTTP-403 codes:[1003]",
+    "ApiError: https://x.com/i/api/graphql/ubfbnAM4qTlMTOYleYhXSg/UsersByRestIds HTTP-403 codes:[1003]",
+    "ApiError: https://x.com/i/api/graphql/ubfbnAM4qTlMTOYleYhXSg/UsersByRestIds HTTP-403 codes:[1003]",
+    "ApiError: https://x.com/i/api/graphql/ubfbnAM4qTlMTOYleYhXSg/UsersByRestIds HTTP-403 codes:[1003]"
+  ],
+  "extensionErrors": [],
+  "limitations": "One public thread; X-native API failures are recorded separately from extension runtime errors. No Edge GUI operation or account changes."
+}

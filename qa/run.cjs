@@ -46,113 +46,95 @@ async function scroll(page){
   await popup.locator('#status-text').filter({hasText:'已启用'}).waitFor();
   await popup.locator('body').screenshot({path:path.join(out,'screenshots/popup-light.png'),animations:'disabled'});
   const page=await context.newPage();await page.goto('https://x.com/testauthor/status/1000');
-  const a=number=>page.locator('[data-fixture-id="'+number+'"]'),host=number=>a(number).locator('[data-rs-host]');
-  await host(1003).waitFor();
+
+  const a=n=>page.locator('[data-fixture-id="'+n+'"]'),host=n=>page.locator('[data-rs-entry="'+n+'"]'),tray=page.locator('[data-rs-tray]');
+  const open=async p=>{const button=p.locator('[data-rs-tray] .rs-toggle-all');await button.waitFor();if(await button.getAttribute('aria-expanded')==='false')await button.click()};
+  const absent=async(p,n)=>p.waitForFunction(n=>!document.querySelector('[data-rs-entry="'+n+'"]'),n);
+  await tray.waitFor();
   const tabs=await worker.evaluate(()=>chrome.tabs.query({}));
   let tabId;for(const tab of tabs){try{const m=await metric(worker,tab.id);if(m.active){tabId=tab.id;break}}catch{}}
   assert.ok(tabId,'content script metrics reachable');
-  await check('default aggressive, text-only scope, root/ancestors/quotes/ads/media/recommendations preserved',async()=>{
-   assert.equal((await get()).settings.threshold,.3);
-   for(const n of [999,1000,1002,1004,1005,1006,1007,1008,900000])assert.equal(await host(n).count(),0);
-   assert.equal(await a(1003).getAttribute('data-rs-folded'),'');
-   assert.equal(await a(1003).locator('.tweet').isVisible(),false);
+  await check('one bottom collection replaces every inline fold marker; default is one button with zero entry rows',async()=>{
+   assert.equal((await get()).settings.threshold,.3);assert.equal(await tray.count(),1);
+   await tray.locator('.rs-count').filter({hasText:'已收起 2 条回复'}).waitFor();
+   assert.equal(await tray.getByRole('button').count(),1);assert.equal(await host(1001).count(),0);
+   assert.equal(await page.locator('article [data-rs-host],article [data-rs-tray]').count(),0);
+   assert.equal(await tray.evaluate(n=>n===n.parentElement.lastElementChild),true);
+   for(const n of [1001,1003]){assert.equal(await a(n).getAttribute('data-rs-folded'),'');assert.equal(await a(n).evaluate(n=>n.getBoundingClientRect().height),0)}
+   for(const n of [999,1000,1002,1004,1005,1006,1007,1008,900000])assert.equal(await a(n).getAttribute('data-rs-folded'),null);
+   await tray.scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'screenshots/collection-closed.png'),fullPage:true});
   });
-  await check('root-author replies and normal replies keep native markup without badges or toolbar spacing',async()=>{
-   assert.ok(scorer.score(rows.find(r=>r.id==='1007').text)>.3);
-   for(const n of [1002,1004,1007,1008]){assert.equal(await host(n).count(),0);assert.equal(await a(n).getAttribute('data-rs-managed'),null);assert.equal(await a(n).getAttribute('data-rs-folded'),null);assert.equal(await a(n).evaluate(a=>a.style.getPropertyValue('--rs-toolbar-height')),'')}
+  await check('one click expands every reply as plain text, no per-reply toggle or cards; keyboard collapses all',async()=>{
+   await open(page);for(const n of [1001,1003])await host(n).waitFor();
+   assert.equal(await tray.locator('.rs-text').count(),2);assert.equal(await tray.locator('.rs-toggle-all').count(),1);
+   assert.equal(await host(1003).locator('.rs-text').textContent(),rows[4].text);
+   assert.equal(await a(1003).isVisible(),false);assert.equal(await tray.locator('.toggle').count(),0);
+   assert.equal(await host(1003).evaluate(n=>getComputedStyle(n).borderTopWidth),'0px');
+   const link=host(1003).getByRole('link',{name:'查看原回复 ↗'});assert.equal(await link.getAttribute('href'),'https://x.com/helpful_dev/status/1003');assert.equal(await link.getAttribute('target'),'_blank');
+   await tray.locator('.rs-toggle-all').focus();await page.keyboard.press('Space');assert.equal(await tray.locator('.rs-list').isVisible(),false);await page.keyboard.press('Space');assert.equal(await tray.locator('.rs-list').isVisible(),true);
+   await page.screenshot({path:path.join(out,'screenshots/collection-open.png'),fullPage:true});
+  });
+  await check('root-author replies and normal replies keep native markup without badges or toolbar spacing; recycled cells restore',async()=>{
+   for(const n of [1002,1004,1007,1008]){assert.equal(await a(n).getAttribute('data-rs-managed'),null);assert.equal(await a(n).getAttribute('data-rs-folded'),null);assert.equal(await a(n).evaluate(n=>n.style.getPropertyValue('--rs-toolbar-height')),'')}
+   await a(1001).evaluate(n=>n.className='native-hover-state');assert.equal(await a(1001).isVisible(),false);
+   await a(1002).evaluate(n=>{n.style.display='flex';n.style.gap='12px';n.querySelector('.tweet').style.display='contents';n.querySelector('.body').style.width='0px'});assert.ok(await a(1002).locator('.body').evaluate(n=>n.getBoundingClientRect().width)>300);
+   await a(1001).evaluate(n=>{const cell=document.createElement('div');cell.dataset.testid='cellInnerDiv';cell.style.minHeight='180px';n.before(cell);cell.append(n)});
+   await page.waitForFunction(()=>document.querySelector('[data-fixture-id="1001"]').closest('[data-testid=cellInnerDiv]').hasAttribute('data-rs-hidden-cell'));
+   assert.ok(await a(1001).evaluate(n=>n.closest('[data-testid=cellInnerDiv]').getBoundingClientRect().height)<=1);
+   await set({enabled:false});await page.waitForFunction(()=>!document.querySelector('[data-rs-tray]'));assert.equal(await a(1001).isVisible(),true);assert.equal(await a(1001).evaluate(n=>n.closest('[data-testid=cellInnerDiv]').hasAttribute('data-rs-hidden-cell')),false);
+   await set({enabled:true});await open(page);
   });
   await check('root author survives virtualization and is reset when the detail route changes',async()=>{
-   await a(1000).evaluate(n=>n.remove());
-   await page.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),article({id:'1010',account:'TESTAUTHOR',text:rows[2].text})+article({id:'1011',account:'another_reader',text:rows[2].text}));
-   await host(1011).waitFor();assert.equal(await host(1010).count(),0);
-   await a(999).evaluate((n,markup)=>n.insertAdjacentHTML('afterend',markup),article(rows[1]));
-   await page.evaluate(()=>history.pushState({},'','/helpful_dev/status/1003'));await host(1007).waitFor();assert.equal(await host(1003).count(),0);
-   await page.evaluate(()=>history.pushState({},'','/testauthor/status/1000'));await host(1003).waitFor();await page.waitForFunction(()=>!document.querySelector('[data-fixture-id="1007"] [data-rs-host]'));assert.equal(await host(1008).count(),0);
+   const p=await context.newPage();await p.goto('https://x.com/testauthor/status/1000');await open(p);
+   await p.locator('[data-fixture-id="1000"]').evaluate(n=>n.remove());
+   await p.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),article({id:'1010',account:'TESTAUTHOR',text:rows[2].text})+article({id:'1011',account:'another_reader',text:rows[2].text}));
+   await p.locator('[data-rs-entry="1011"]').waitFor();assert.equal(await p.locator('[data-rs-entry="1010"]').count(),0);
+   await p.locator('[data-fixture-id="999"]').evaluate((n,markup)=>n.insertAdjacentHTML('afterend',markup),article(rows[1]));
+   await p.evaluate(()=>history.pushState({},'','/helpful_dev/status/1003'));await p.waitForFunction(()=>document.querySelector('[data-fixture-id="1007"]').hasAttribute('data-rs-folded'));await open(p);assert.equal(await p.locator('[data-rs-entry="1003"]').count(),0);
+   await p.evaluate(()=>history.pushState({},'','/home'));await p.waitForFunction(()=>!document.querySelector('[data-rs-tray]'));assert.equal(await p.locator('[data-rs-folded]').count(),0);
+   await p.close();
   });
-  await check('missing root text, quoted authors and delayed root headers cannot fold the original author',async()=>{
-   const metadata=await context.newPage();await metadata.goto('https://x.com/i/web/status/1000?root-metadata');await metadata.waitForTimeout(200);assert.equal(await metadata.locator('[data-rs-host]').count(),0);
-   await metadata.locator('[data-testid=pending-name]').evaluate(n=>{const header=n.cloneNode(true);header.dataset.testid='User-Name';n.replaceWith(header)});
-   await metadata.locator('[data-fixture-id="1001"] [data-rs-host]').waitFor();
-   for(const n of [1007,1008])assert.equal(await metadata.locator('[data-fixture-id="'+n+'"] [data-rs-host]').count(),0);
-   await metadata.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),article({id:'1012',account:'quoteauthor',text:rows[2].text}));
-   await metadata.locator('[data-fixture-id="1012"] [data-rs-host]').waitFor();await metadata.close();
+  await check('missing root text, quoted authors and delayed root headers preserve author scope',async()=>{
+   const p=await context.newPage();await p.goto('https://x.com/i/web/status/1000?root-metadata');await p.waitForTimeout(200);assert.equal(await p.locator('[data-rs-tray]').count(),0);
+   await p.locator('[data-testid=pending-name]').evaluate(n=>{const header=n.cloneNode(true);header.dataset.testid='User-Name';n.replaceWith(header)});await open(p);
+   for(const n of [1007,1008])assert.equal(await p.locator('[data-rs-entry="'+n+'"]').count(),0);
+   await p.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),article({id:'1012',account:'quoteauthor',text:rows[2].text}));await p.locator('[data-rs-entry="1012"]').waitFor();await p.close();
   });
-  await check('root-author replies follow exact folded parents; native thread posts and other users stay independent',async()=>{
-   const thread=await context.newPage();await thread.goto('https://x.com/testauthor/status/1000?parents-early');
-   const t=n=>thread.locator('[data-fixture-id="'+n+'"]'),h=n=>t(n).locator('[data-rs-host]');
-   const parents=async(pairs,xhr=false,endpoint='TweetDetail')=>thread.evaluate(async({pairs,xhr,endpoint})=>{
+  await check('root-author replies follow exact folded parents; one global expansion keeps them together',async()=>{
+   const p=await context.newPage();await p.goto('https://x.com/testauthor/status/1000?parents-early');await open(p);
+   const h=n=>p.locator('[data-rs-entry="'+n+'"]');await h(1007).locator('.rs-reason').filter({hasText:'随上级收起'}).waitFor();assert.equal(await h(1008).count(),0);
+   const parents=async(pairs,xhr=false,endpoint='TweetDetail')=>p.evaluate(async({pairs,xhr,endpoint})=>{
     const url='/i/api/graphql/fixture/'+endpoint+'?pairs='+encodeURIComponent(JSON.stringify(pairs));
-    const body=xhr?await new Promise((resolve,reject)=>{const r=new XMLHttpRequest();r.open('GET',url);r.responseType='json';r.onload=()=>resolve(r.response);r.onerror=reject;r.send()}):await (await fetch(url)).json();
-    return body.data.entries.length;
+    if(xhr)await new Promise((resolve,reject)=>{const r=new XMLHttpRequest();r.open('GET',url);r.responseType='json';r.onload=resolve;r.onerror=reject;r.send()});else await (await fetch(url)).json();
    },{pairs,xhr,endpoint});
-   const absent=async n=>thread.waitForFunction(n=>!document.querySelector('[data-fixture-id="'+n+'"] [data-rs-host]'),n);
-   await h(1007).getByText('随上级收起 @testauthor 的回复',{exact:true}).waitFor();assert.equal(await h(1008).count(),0);
-   await thread.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),[
-    {id:'1013',account:'another_reader',text:'哈哈哈'},
-    {id:'1014',account:'testauthor',text:'哈哈哈'},
-    {id:'1015',account:'TESTAUTHOR',text:'哈哈哈'},
-    {id:'1016',account:'testauthor',text:rows[2].text},
-    {id:'1017',account:'testauthor',text:rows[2].text},
-    {id:'1018',account:'testauthor',text:'哈哈哈'},
+   await p.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),[
+    {id:'1013',account:'another_reader',text:'哈哈哈'},{id:'1014',account:'testauthor',text:'哈哈哈'},
+    {id:'1015',account:'TESTAUTHOR',text:'哈哈哈'},{id:'1016',account:'testauthor',text:rows[2].text},
+    {id:'1017',account:'testauthor',text:rows[2].text},{id:'1018',account:'testauthor',text:'哈哈哈'},
    ].map(article).join(''));
-   assert.equal(await parents([['1013','1001'],['1014','1002'],['1015','1007'],['1017','1008']]),4);
-   await h(1015).waitFor();for(const n of [1013,1014,1016,1017])assert.equal(await h(n).count(),0);
-   assert.equal(await parents([['1018','1001']],true),1);await h(1018).waitFor();
-   await h(1015).getByRole('button',{name:'展开',exact:true}).click();assert.equal(await t(1015).locator('.tweet').isVisible(),true);await h(1015).getByRole('button',{name:'收起',exact:true}).click();
-   await h(1001).getByRole('button',{name:'展开',exact:true}).click();for(const n of [1007,1015,1018])await absent(n);
-   await h(1001).getByRole('button',{name:'收起',exact:true}).click();for(const n of [1007,1015,1018])await h(n).waitFor();
-   await set({threshold:.95});await absent(1007);await set({threshold:.30});await h(1007).waitFor();
-   await message({type:'white-add',account:'example_ai'});await absent(1007);await message({type:'white-remove',account:'example_ai'});await h(1007).waitFor();
-   await message({type:'white-add',account:'testauthor'});await absent(1007);await message({type:'white-remove',account:'testauthor'});await h(1007).waitFor();
-   await t(1001).evaluate(a=>a.remove());await thread.waitForTimeout(80);assert.equal(await t(1007).getAttribute('data-rs-folded'),'');
-   await t(1000).evaluate((n,markup)=>n.insertAdjacentHTML('afterend',markup),article(rows[2]));await h(1001).waitFor();
-   await parents([['1016','1001']],false,'OtherOperation');await thread.waitForTimeout(80);assert.equal(await h(1016).count(),0);
-   await thread.evaluate(()=>{for(const message of [{path:'/wrong',pairs:[['1016','1001']]},{path:location.pathname,pairs:[['1016','1016'],['1016',1001]]}])window.postMessage({channel:'liubai:parents:v1',...message},location.origin)});await thread.waitForTimeout(80);assert.equal(await h(1016).count(),0);
-   const before=(await get()).feedbackCount;await h(1018).getByRole('button',{name:'不该折叠',exact:true}).click();await h(1018).getByText('已展开，纠错记录仅保存在本机。',{exact:true}).waitFor();
+   await parents([['1013','1001'],['1014','1002'],['1015','1007'],['1017','1008']]);await h(1015).waitFor();for(const n of [1013,1014,1016,1017])assert.equal(await h(n).count(),0);
+   await parents([['1018','1001']],true);await h(1018).waitFor();
+   await p.locator('.rs-toggle-all').click();assert.equal(await p.locator('.rs-list').isVisible(),false);await open(p);assert.equal(await p.locator('[data-fixture-id="1007"]').isVisible(),false);
+   await set({threshold:.95});await absent(p,1007);await set({threshold:.30});await h(1007).waitFor();
+   await message({type:'white-add',account:'example_ai'});await absent(p,1007);await message({type:'white-remove',account:'example_ai'});await h(1007).waitFor();
+   await message({type:'white-add',account:'testauthor'});await absent(p,1007);await message({type:'white-remove',account:'testauthor'});await h(1007).waitFor();
+   await p.locator('[data-fixture-id="1001"]').evaluate(n=>n.remove());await p.waitForTimeout(80);assert.equal(await h(1001).count(),1);assert.equal(await p.locator('[data-fixture-id="1007"]').getAttribute('data-rs-folded'),'');
+   await parents([['1016','1001']],false,'OtherOperation');await p.waitForTimeout(80);assert.equal(await h(1016).count(),0);
+   await p.evaluate(()=>{for(const message of [{path:'/wrong',pairs:[['1016','1001']]},{path:location.pathname,pairs:[['1016','1016'],['1016',1001]]}])window.postMessage({channel:'liubai:parents:v1',...message},location.origin)});await p.waitForTimeout(80);assert.equal(await h(1016).count(),0);
+   await h(1018).getByRole('button',{name:'不该折叠',exact:true}).click();await absent(p,1018);
    const exported=await message({type:'export'}),feedback=exported.feedback.find(f=>f.url.endsWith('/1018'));assert.equal(feedback.foldReason,'parent_folded');assert.equal(feedback.parentId,'1001');assert.ok(Math.abs(feedback.modelScore-scorer.score('哈哈哈'))<1e-6);
-   assert.equal(exported.feedback.length,before+1);
-   // Keep the existing feedback checks isolated from this separate synthetic thread.
    await worker.evaluate(()=>chrome.storage.local.set({feedback:[]}));
-   await thread.evaluate(()=>history.pushState({},'','/helpful_dev/status/1003'));await h(1007).getByText('已收起 @testauthor 的回复',{exact:true}).waitFor();await absent(1015);
-   await thread.evaluate(()=>history.pushState({},'','/testauthor/status/1000'));await h(1007).getByText('随上级收起 @testauthor 的回复',{exact:true}).waitFor();
-   await thread.screenshot({path:path.join(out,'screenshots/author-parent-folds.png'),fullPage:true});await thread.close();
+   await p.screenshot({path:path.join(out,'screenshots/author-parent-folds.png'),fullPage:true});await p.close();
   });
-  await page.screenshot({path:path.join(out,'screenshots/replies-folded.png'),fullPage:true});
-  await check('one-click expand and refold retain original content',async()=>{
-   const text=await a(1003).locator('[data-testid=tweetText]').textContent();
-   await host(1003).getByRole('button',{name:'展开',exact:true}).click();assert.equal(await a(1003).locator('.tweet').isVisible(),true);
-   await host(1003).getByRole('button',{name:'收起',exact:true}).click();assert.equal(await a(1003).locator('.tweet').isVisible(),false);
-   assert.equal(await a(1003).locator('[data-testid=tweetText]').textContent(),text);
-   await host(1003).getByRole('button',{name:'展开',exact:true}).focus();await page.keyboard.press('Space');assert.equal(await a(1003).locator('.tweet').isVisible(),true);await page.keyboard.press('Space');assert.equal(await a(1003).locator('.tweet').isVisible(),false);
+  await check('one-click whitelist restores native replies, updates the collection and persists across reload',async()=>{
+   await host(1001).getByRole('button',{name:'总是保留 @example_ai',exact:true}).click();await absent(page,1001);assert.equal(await a(1001).isVisible(),true);assert.ok((await get()).settings.whitelist.includes('example_ai'));
+   await page.reload();await open(page);assert.equal(await host(1001).count(),0);
+   await popup.getByRole('button',{name:'移除 @example_ai 的白名单',exact:true}).click();await host(1001).waitFor();
   });
-  await check('X replacing article classes cannot drop the fold state or toolbar spacing',async()=>{
-   await a(1003).evaluate(a=>a.className='native-hover-state');assert.equal(await a(1003).getAttribute('data-rs-folded'),'');assert.equal(await a(1003).locator('.tweet').isVisible(),false);
-   await a(1002).evaluate(a=>a.className='native-hover-state');assert.equal(await a(1002).getAttribute('data-rs-managed'),null);
-  });
-  await check('recommendations stay unfiltered after their heading is removed by virtualization',async()=>{
-   await page.evaluate(newHTML=>{document.querySelector('h2').remove();document.querySelector('[data-fixture-id="900000"]').outerHTML=newHTML},article({id:'900001',account:'another_post',text:rows[2].text}));
-   await page.waitForTimeout(100);assert.equal(await host(900001).count(),0);
-   await a(900001).evaluate(a=>{const heading=document.createElement('h2');heading.textContent='发现更多';a.before(heading)});
-  });
-  await check('normal flex replies have no extra spacing; expanded folds keep controls below native content',async()=>{
-   await a(1002).evaluate(a=>{a.style.display='flex';a.style.gap='12px';a.querySelector('.tweet').style.display='contents';a.querySelector('.body').style.width='0px'});await page.waitForTimeout(60);
-   assert.equal(await host(1002).count(),0);assert.ok(await a(1002).locator('.body').evaluate(n=>n.getBoundingClientRect().width)>300,'native flex body must not collapse into a narrow column');
-   await host(1003).getByRole('button',{name:'展开',exact:true}).click();await page.waitForTimeout(60);
-   const boxes=await a(1003).evaluate(a=>({body:a.querySelector('.tweet').getBoundingClientRect().toJSON(),bar:a.querySelector('[data-rs-host]').getBoundingClientRect().toJSON()}));assert.ok(boxes.bar.y>=boxes.body.bottom-1);await host(1003).getByRole('button',{name:'收起',exact:true}).click();
-  });
-  await check('feedback saved locally once, expands reply, export JSON includes text and explicit keep label',async()=>{
-   await host(1003).getByRole('button',{name:'不该折叠',exact:true}).click();
-   await host(1003).getByText('已展开，纠错记录仅保存在本机。',{exact:true}).waitFor();
-   assert.equal((await get()).feedbackCount,1);assert.equal(await a(1003).locator('.tweet').isVisible(),true);
+  await check('feedback restores the native reply for this page and exports an explicit local keep label',async()=>{
+   await host(1003).getByRole('button',{name:'不该折叠',exact:true}).click();await absent(page,1003);assert.equal(await a(1003).isVisible(),true);assert.equal((await get()).feedbackCount,1);
    const downloadPromise=popup.waitForEvent('download');await popup.locator('#export').click();const download=await downloadPromise;const exportPath=path.join(work,'feedback-test-export.json');await download.saveAs(exportPath);
-   const data=JSON.parse(fs.readFileSync(exportPath,'utf8'));assert.equal(data.feedback.length,1);assert.equal(data.feedback[0].label,'保留');assert.equal(data.feedback[0].account,'helpful_dev');assert.ok(data.feedback[0].text.startsWith('自迭代'));
-  });
-  await check('one-click whitelist overrides model and persists across reload; removal restores filtering',async()=>{
-   await host(1001).getByRole('button',{name:'总是保留 @example_ai',exact:true}).click();
-   await page.waitForFunction(()=>!document.querySelector('[data-fixture-id="1001"] [data-rs-host]'));assert.ok((await get()).settings.whitelist.includes('example_ai'));
-   await page.reload();await host(1003).waitFor();assert.equal(await host(1001).count(),0);assert.equal(await a(1001).locator('.tweet').isVisible(),true);
-   await popup.getByRole('button',{name:'移除 @example_ai 的白名单',exact:true}).click();
-   await page.waitForFunction(()=>document.querySelector('[data-fixture-id="1001"]').hasAttribute('data-rs-folded'));
+   const data=JSON.parse(fs.readFileSync(exportPath,'utf8'));assert.equal(data.feedback.length,1);assert.equal(data.feedback[0].account,'helpful_dev');assert.equal(data.feedback[0].label,'保留');assert.equal(data.feedback[0].foldReason,'model');
   });
   await check('popup presets, slider, validation and normalized handles',async()=>{
    await popup.getByRole('button',{name:'保守',exact:true}).click();await popup.waitForFunction(()=>document.querySelector('#strength-name').textContent==='保守');assert.equal((await get()).settings.threshold,.7304868345052445);
@@ -172,33 +154,35 @@ async function scroll(page){
    for(const account of ['parallel_a','parallel_b','parallel_c'])await message({type:'white-remove',account});
    assert.equal((await set({threshold:-1})).ok,false);assert.equal((await get()).settings.threshold,.30);
   });
-  await check('disabled restores originals, enabled resumes, home/search routes untouched',async()=>{
-   await set({enabled:false});await page.waitForFunction(()=>!document.querySelector('[data-rs-host]'));assert.equal(await a(1001).locator('.tweet').isVisible(),true);
-   await set({enabled:true});await host(1001).waitFor();
-   await page.evaluate(()=>history.pushState({},'','/home'));await page.waitForFunction(()=>!document.querySelector('[data-rs-host]'));
-   await page.evaluate(()=>history.pushState({},'','/testauthor/status/1000'));await host(1001).waitFor();
+
+  await check('recommendations remain excluded when their heading disappears, and new replies keep the collection last',async()=>{
+   await page.evaluate(markup=>{document.querySelector('h2').remove();document.querySelector('[data-fixture-id="900000"]').outerHTML=markup},article({id:'900001',account:'another_post',text:rows[2].text}));await page.waitForTimeout(80);assert.equal(await host(900001).count(),0);
+   await a(900001).evaluate(n=>{const h=document.createElement('h2');h.textContent='发现更多';n.before(h)});
+   await page.evaluate(markup=>document.querySelector('[data-testid=primaryColumn]').insertAdjacentHTML('beforeend',markup),article({id:'900002',account:'extra_rec',text:rows[2].text}));await page.waitForTimeout(100);assert.equal(await tray.evaluate(n=>n===n.parentElement.lastElementChild),true);assert.equal(await host(900002).count(),0);
   });
-  await check('virtualized article recycling does not leak author, fold state or feedback target',async()=>{
-   await a(1001).evaluate((node,newHTML)=>{const box=document.createElement('div');box.innerHTML=newHTML;node.replaceChildren(...box.firstElementChild.childNodes);node.dataset.fixtureId='1100'},article({id:'1100',account:'new_reader',text:'哈哈哈'}));
-   await page.waitForFunction(()=>!document.querySelector('[data-fixture-id="1100"]').hasAttribute('data-rs-managed'));assert.equal(await a(1100).locator('.tweet').isVisible(),true);assert.equal(await host(1100).count(),0);
+  await check('virtualized article recycling restores the cell while keeping the old reply readable in the collection',async()=>{
+   await a(1001).evaluate((node,markup)=>{const box=document.createElement('div');box.innerHTML=markup;node.replaceChildren(...box.firstElementChild.childNodes);node.dataset.fixtureId='1100'},article({id:'1100',account:'new_reader',text:'哈哈哈'}));
+   await page.waitForFunction(()=>!document.querySelector('[data-fixture-id="1100"]').hasAttribute('data-rs-folded'));assert.equal(await a(1100).isVisible(),true);assert.equal(await host(1100).count(),0);await host(1001).waitFor();assert.equal(await host(1001).locator('.rs-author').textContent(),'@example_ai');
   });
-  await check('display-shortened URLs normalize using their actual link, without storing changed reply text',async()=>{
-   const prefix=rows[2].text+' ',url='https://t.co/testlink123',expected=scorer.score(prefix+url);assert.ok(expected>.3);
-   await a(1004).locator('[data-testid=tweetText]').first().evaluate((node,prefix)=>{const link=document.createElement('a');link.href='https://t.co/testlink123';link.textContent='github.com/example/…';node.replaceChildren(document.createTextNode(prefix),link)},prefix);
-   await host(1004).getByRole('button',{name:'不该折叠',exact:true}).waitFor();await host(1004).getByRole('button',{name:'不该折叠',exact:true}).click();await host(1004).getByText('已展开，纠错记录仅保存在本机。',{exact:true}).waitFor();
-   const data=await message({type:'export'}),record=data.feedback.find(r=>r.account==='quoted_reply');assert.ok(Math.abs(record.modelScore-expected)<1e-6);assert.equal(record.text,prefix+'github.com/example/…');
+  await check('shortened URLs use actual href for scoring; collected text is escaped and feedback keeps displayed text',async()=>{
+   const prefix=rows[2].text+' ',url='https://t.co/testlink123',expected=scorer.score(prefix+url);
+   await a(1004).locator('[data-testid=tweetText]').first().evaluate((n,prefix)=>{const link=document.createElement('a');link.href='https://t.co/testlink123';link.textContent='github.com/example/…';n.replaceChildren(document.createTextNode(prefix),link)},prefix);
+   await host(1004).getByRole('button',{name:'不该折叠',exact:true}).click();await absent(page,1004);
+   const record=(await message({type:'export'})).feedback.find(r=>r.account==='quoted_reply');assert.ok(Math.abs(record.modelScore-expected)<1e-6);assert.equal(record.text,prefix+'github.com/example/…');
+   const text=rows[2].text+' <img src=x onerror=alert(1)>',id='1020';assert.ok(scorer.score(text)>.3);await page.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),article({id,account:'markup_reader',text}));
+   await host(id).waitFor();assert.equal(await host(id).locator('.rs-text').textContent(),text);assert.equal(await host(id).locator('.rs-text img').count(),0);
   });
-  await check('light/dark popup and narrow reply layout have no horizontal overflow; keyboard works',async()=>{
+  await check('one collection is responsive and theme-aware; closing all keeps keyboard focus on its single control',async()=>{
    assert.equal(await popup.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);result.popupBodyHeight=await popup.locator('body').evaluate(n=>n.getBoundingClientRect().height);assert.ok(result.popupBodyHeight<=600);
-   await popup.locator('#account').fill('');await popup.evaluate(()=>document.querySelector('#message').textContent='');
-   await popup.locator('#account').fill('');await popup.evaluate(()=>document.querySelector('#message').textContent='');
    await popup.emulateMedia({colorScheme:'dark',reducedMotion:'reduce'});await popup.locator('body').screenshot({path:path.join(out,'screenshots/popup-dark.png'),animations:'disabled'});
-   await popup.locator('#enabled').focus();await popup.keyboard.press('Space');await popup.waitForTimeout(100);assert.equal((await get()).settings.enabled,false);await popup.keyboard.press('Space');await popup.waitForTimeout(100);
-   await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(out,'screenshots/replies-narrow.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-   await page.emulateMedia({colorScheme:'dark'});await page.waitForTimeout(100);assert.equal(await host(1004).evaluate(h=>h.style.getPropertyValue('--rs-bg')),'#15202b');await page.screenshot({path:path.join(out,'screenshots/replies-dark.png'),fullPage:true});
+   await page.setViewportSize({width:390,height:844});await tray.scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'screenshots/collection-narrow.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.emulateMedia({colorScheme:'dark'});await page.waitForTimeout(60);assert.equal(await tray.evaluate(n=>n.style.getPropertyValue('--rs-bg')),'#15202b');await page.screenshot({path:path.join(out,'screenshots/collection-dark.png'),fullPage:true});
+   await tray.locator('.rs-toggle-all').click();assert.equal(await tray.locator('.rs-list').isVisible(),false);assert.equal(await tray.locator('.rs-toggle-all').evaluate(n=>document.activeElement===n),true);await open(page);
    await popup.emulateMedia({colorScheme:'light'});await page.emulateMedia({colorScheme:'light'});await page.setViewportSize({width:1280,height:900});
   });
-  await check('plugin has no account block button or automatic X account action',async()=>{assert.equal(await page.getByRole('button',{name:'屏蔽账号 ↗',exact:true}).count(),0);assert.equal(await page.evaluate(()=>window.fixture.menuOpens),0);assert.equal(await page.evaluate(()=>window.fixture.articlePresses),0)});
+  await check('plugin has no account block control and collection gestures never navigate the native article',async()=>{
+   assert.equal(await page.getByRole('button',{name:'屏蔽账号 ↗',exact:true}).count(),0);assert.equal(await page.evaluate(()=>window.fixture.menuOpens),0);assert.equal(await page.evaluate(()=>window.fixture.articlePresses),0);
+  });
   result.functionalMetrics=await metric(worker,tabId);
   const load=await context.newPage();let t=performance.now();await load.goto('https://x.com/testauthor/status/1000?loadtest');
   let loadId;const deadline=performance.now()+30000;
@@ -210,6 +194,9 @@ async function scroll(page){
   const nav=await load.evaluate(()=>performance.getEntriesByType('navigation')[0].toJSON());result.navigation={domContentLoadedMs:nav.domContentLoadedEventEnd,loadMs:nav.loadEventEnd};
   result.startupLongTasks=await load.evaluate(()=>window.__rsQALongTasks);
   result.scroll=await scroll(load);
+  assert.equal(await load.locator('[data-rs-tray] .rs-toggle-all').count(),1);assert.equal(await load.locator('[data-rs-entry]').count(),0);
+  result.collectionOpen=await load.evaluate(async()=>{const start=performance.now();document.querySelector('.rs-toggle-all').click();const handlerMs=performance.now()-start;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));return {handlerMs,twoFramesMs:performance.now()-start,entries:document.querySelectorAll('[data-rs-entry]').length}});
+  assert.ok(result.collectionOpen.entries>100);result.collectionOpen.scroll=await scroll(load);checks.push('600-reply stress page expands all collected replies with one button, retaining no inline markers');
   // Profile the scorer separately from DOM reading, style/layout and toolbars.
   const bench=await context.newPage();await bench.goto('about:blank');await bench.addScriptTag({path:path.join(extension,'model-data.js')});await bench.addScriptTag({path:path.join(extension,'scorer.js')});
   result.browserScorer=await bench.evaluate(()=>{const text='自迭代最好别让它直接改主记忆 先写进一个待合并区 跑几次任务没变差再合进去';for(let i=0;i<50;i++)ReplyScorer.score(text);const times=[];for(let i=0;i<1000;i++){const t=performance.now();ReplyScorer.score(text);times.push(performance.now()-t)}return times});result.browserScorer=summarize(result.browserScorer);
