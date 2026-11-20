@@ -1,8 +1,8 @@
 {
   "version": "1.0.5",
   "archive": "liubai-chrome-edge-v1.0.5.zip",
-  "archive_bytes": 142505,
-  "archive_sha256": "bc404ef3611b87a9444179bf109fed960655854c8c028eeb257d24020de04fa4",
+  "archive_bytes": 143587,
+  "archive_sha256": "a4574bbc13bbe9eb3f98dde007a262f45cffbbc7a33abf824db938d1529b87d8",
   "files": [
     {
       "path": "extension/_locales/zh_CN/messages.json",
@@ -86,8 +86,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 6106,
-      "sha256": "6cbadfe092516306a91d1d4c0324388e46a818825e8177eceee2a74d4a8e2902"
+      "bytes": 6222,
+      "sha256": "5e7607b9cacc24c1f0187d57276a4c1ba75f418e540481d9171b335701ae777b"
     },
     {
       "path": "INSTALL.md",
@@ -103,6 +103,11 @@
       "path": "PRIVACY.md",
       "bytes": 582,
       "sha256": "92968fac1954463ab6e99328f6401dc287fe9a7985afc74adb6bd0bcfb1ac500"
+    },
+    {
+      "path": "store/SUBMISSION.md",
+      "bytes": 1204,
+      "sha256": "94470698ead0f1305e4434df62c76f2805ecee2f6b68c93b53f650f266f84d94"
     },
     {
       "path": "store/edge/PRIVACY.md",

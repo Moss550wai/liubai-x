@@ -67,7 +67,7 @@ report=f'''# 留白 {version} 回归记录
 
 '''+''.join('- '+s+'\n' for s in q['checks'])
 (ROOT/'test-report.md').write_text(report,encoding='utf-8')
-files=sorted(p for p in EXT.rglob('*') if p.is_file())+[ROOT/n for n in ['README.md','INSTALL.md','CHANGELOG.md','PRIVACY.md','store/edge/PRIVACY.md','store/chrome/PRIVACY.md','thresholds.md','test-report.md']]+sorted((ROOT/'docs').glob('*.md'))+[ROOT/'screenshots/live-tray-1.0.3-closed.png']
+files=sorted(p for p in EXT.rglob('*') if p.is_file())+[ROOT/n for n in ['README.md','INSTALL.md','CHANGELOG.md','PRIVACY.md','store/SUBMISSION.md','store/edge/PRIVACY.md','store/chrome/PRIVACY.md','thresholds.md','test-report.md']]+sorted((ROOT/'docs').glob('*.md'))+[ROOT/'screenshots/live-tray-1.0.3-closed.png']
 archive=ROOT/f'liubai-chrome-edge-v{version}.zip'
 with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
     for p in files:z.write(p,p.relative_to(ROOT).as_posix())
