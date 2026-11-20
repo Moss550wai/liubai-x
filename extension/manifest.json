@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "留白 · X 回复筛",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "minimum_chrome_version": "120",
   "description": "在本机折叠 X 的模板回复。可展开、可调强度，给注意力留一点白。",
   "permissions": ["storage"],

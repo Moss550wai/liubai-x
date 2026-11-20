@@ -1,0 +1,23 @@
+# Development dependencies and browser test profiles
+node_modules/
+.qa-deps/
+.venv/
+work/
+profiles/
+playwright-report/
+test-results/
+__pycache__/
+*.pyc
+# Local sessions, credentials and private training/feedback data
+.env
+.env.*
+*.sqlite
+*.sqlite-*
+*.pem
+*.key
+*.p12
+*cookies*.json
+storage-state*.json
+*feedback*export*.json
+*.joblib
+*.pkl

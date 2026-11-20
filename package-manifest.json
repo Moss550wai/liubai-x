@@ -1,8 +1,8 @@
 {
-  "version": "1.0.3",
-  "archive": "liubai-chrome-edge-v1.0.3.zip",
-  "archive_bytes": 122896,
-  "archive_sha256": "fb0999dc6da7f90d40ea21cca97f83dc73090fb612ad115e0fc4904720af2f43",
+  "version": "1.0.4",
+  "archive": "liubai-chrome-edge-v1.0.4.zip",
+  "archive_bytes": 137084,
+  "archive_sha256": "c096d2c0db597e4128b188cb0bbf4ecdbf6c1f28d3672c0cc19ee55321e32875",
   "files": [
     {
       "path": "extension/background.js",
@@ -46,8 +46,8 @@
     },
     {
       "path": "extension/manifest.json",
-      "bytes": 943,
-      "sha256": "61f0fb0a29a1193e084490016fd2915212d492b2328576aa48272cd37d59a781"
+      "bytes": 966,
+      "sha256": "9346b8273d9d9bc3ceedee243f74833b4760ea4e0b12a19360a19378b5178266"
     },
     {
       "path": "extension/model-data.js",
@@ -81,13 +81,18 @@
     },
     {
       "path": "README.md",
-      "bytes": 5622,
-      "sha256": "abcb0240eb25a8128a75a79c12e2fd925f603caed3a2c7b49ad6f2b1a7a05977"
+      "bytes": 6100,
+      "sha256": "3807d30db8ffdf6aa3a1f9a97f9e01f6f372237aa279642346cb497d65941963"
+    },
+    {
+      "path": "INSTALL.md",
+      "bytes": 5204,
+      "sha256": "caf82bd0d490602928f6f0c9a0780c882ef1bda37c0477bf3f888b1e5050b9d4"
     },
     {
       "path": "CHANGELOG.md",
-      "bytes": 2712,
-      "sha256": "4cbf87f6b8af48a98c7d14d6edfd0a10a75f778dd3d7e5ac66ead66b44142f76"
+      "bytes": 3151,
+      "sha256": "383d2e466cdce925d20425a172be266c960ba038ead19306e51f77abbff9f007"
     },
     {
       "path": "thresholds.md",
@@ -96,8 +101,28 @@
     },
     {
       "path": "test-report.md",
-      "bytes": 5876,
-      "sha256": "8ab2ec1da7d663adbf66228b4fe0eabf5f88743fea63e915ba73ed1579bb994a"
+      "bytes": 5966,
+      "sha256": "a765af97cd82c106bb2fa16103c175cfa84c89deebd59ce29fdfa1ee9012281b"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "bytes": 3368,
+      "sha256": "9005e9ff2cc9fccf5ebddc73d7feebb433c4cad006ffdc33524bbab4d1d4aae3"
+    },
+    {
+      "path": "docs/DEVELOPMENT.md",
+      "bytes": 7546,
+      "sha256": "7849f8d2cccda2a819e5f06033867f8290c56ae49964808516583b242ad38515"
+    },
+    {
+      "path": "docs/EXPERIMENTS.md",
+      "bytes": 3433,
+      "sha256": "8ab0ab6fdecd3e1cb841542409f3426dcd2443d66a2b2674024894d402e6ed35"
+    },
+    {
+      "path": "screenshots/live-tray-1.0.3-closed.png",
+      "bytes": 2029,
+      "sha256": "154daf16812d984c538fd6cd39d3357ef215c4be72721961947a2e4c75b47a39"
     }
   ],
   "no_training": true,
