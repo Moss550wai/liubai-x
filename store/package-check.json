@@ -1,0 +1,46 @@
+{
+  "version": "1.0.4",
+  "store_approval": "not_submitted",
+  "archive": "liubai-store-v1.0.4.zip",
+  "bytes": 112708,
+  "sha256": "34fa79aa2dbb763cbf0a3a378d38e7c6210000a7f7d17c54f7af00c03a6ae9a4",
+  "runtime_files": 15,
+  "same_runtime_bytes_as_extension": true,
+  "assets": {
+    "logo-300.png": {
+      "dimensions": [
+        300,
+        300
+      ],
+      "sha256": "59c714fd19315d4f4b1e92f4f419f72144443e4f590c5ab2853a833ac6813fed"
+    },
+    "promo-440x280.png": {
+      "dimensions": [
+        440,
+        280
+      ],
+      "sha256": "9e3cc776e4f7f7b4959162b7ccc4ffe70dab5c8fd6f2a6d3fcf0b9f26ea429c8"
+    },
+    "screenshot-01-1280x800.png": {
+      "dimensions": [
+        1280,
+        800
+      ],
+      "sha256": "cf232313d616d1ce9d5c2ce8dc153b0f4e0cf75c08883e8e267f32f9743e104f"
+    },
+    "screenshot-02-1280x800.png": {
+      "dimensions": [
+        1280,
+        800
+      ],
+      "sha256": "6e43e9031f1431be13d6b77dce06c9aec1d80f652b487299fc0e8f5e89c62a76"
+    },
+    "screenshot-03-1280x800.png": {
+      "dimensions": [
+        1280,
+        800
+      ],
+      "sha256": "f6df4ba7086ea454367bb061d7fcca4d49eaba271102d37e3f298041ba4e7b97"
+    }
+  }
+}

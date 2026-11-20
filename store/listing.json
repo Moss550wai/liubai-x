@@ -1,0 +1,29 @@
+{
+  "name": "留白 · X 回复筛",
+  "version": "1.0.4",
+  "primary_locale": "zh-CN",
+  "category_suggestion": "Productivity",
+  "short_description": "在本机折叠 X 的模板回复。可展开、可调强度，给注意力留一点白。",
+  "description_zh_CN": "给 X 评论区留一点白。\n\n留白在你的设备上筛选中文模板附和、机械复述和生成式腔调回复，把命中项从原位置收起，统一归到当前已加载内容底部。只留一个「已收起 N 条回复」入口，点一次展开全部，再点一次收起。\n\n功能\n• 保守 / 标准 / 激进三档与强度滑块，默认激进。\n• 白名单账号始终保留。\n• 不该折叠：恢复本次页面原位置，并在本机记录纠错。\n• 设置、白名单和反馈可导出为本地 JSON。\n• 父帖作者的普通补充、串文默认保留；接话对象已折叠时，作者接话一并收起。\n\n本地处理\n分类模型随扩展打包，在本机 CPU 运行，无需额外模型下载、API Key 或扩展服务账号。扩展会读取当前详情页已加载的回复文字、用户名、链接和必要父子 ID，只用于本地筛选与交互；纠错只在用户主动点击后保存到扩展本地存储，不上传给开发者或服务器。\n\n适用范围\n仅处理 x.com / twitter.com 帖子详情页的已加载文字回复；首页、搜索结果、原帖和已识别的推荐区保持原样。图片、视频和长文展开后的内容不自动识别，列表中的「查看原回复」可打开 X 原生互动。\n\n重要边界\n分数表示模型的折叠倾向，不是作者使用 AI 的概率。模型可能误伤或漏判；你可以展开、纠错或保留账号。扩展不自动拉黑、关注、发帖或改变账号关系。它是独立的个人阅读筛选工具，与 X 没有隶属关系。\n",
+  "description_en_US": "Liubai filters template-like Chinese replies on X locally on your CPU. Filtered replies are collected at the bottom behind one expand-all control. Includes adjustable strength, account allowlist and local correction export. It accesses loaded reply text, usernames, links and parent IDs only for these features; no user content or feedback is uploaded to the developer. It may make mistakes and does not determine whether an author used AI. Works on loaded text replies in post-detail pages on x.com and twitter.com. No automatic account blocking or posting.",
+  "single_purpose": "在 X 帖子详情页中本地筛选文字回复并集中收起，支持展开、强度、白名单与本地纠错。",
+  "storage_justification": "保存本地开关、阈值、用户主动添加的白名单，以及用户点击“不该折叠”时的纠错记录；支持导出。不使用云同步。",
+  "host_access_justification": "内容脚本仅限 https://x.com/* 和 https://twitter.com/*，读取已加载的回复正文、作者和链接用于本地筛选；在页面已发出的 TweetDetail 响应中提取 ID 对，用于作者接话联动。不主动请求接口，不访问其他网站。",
+  "remote_code": false,
+  "remote_code_justification": "全部 JavaScript 和字符模型参数包含在安装包内，无远程代码、动态脚本、eval 或模型下载。",
+  "data_handling": "本地处理网站内容、作者用户名、当前帖子/回复链接与必要父子 ID；设置、白名单、主动纠错存储在 chrome.storage.local。不向开发者或第三方传输，不出售，不广告画像，不信用/借贷用途。",
+  "website_url": "https://github.com/Moss550wai/liubai-x",
+  "support_url": "https://github.com/Moss550wai/liubai-x/issues",
+  "privacy_policy_edge": "https://github.com/Moss550wai/liubai-x/blob/main/store/edge/PRIVACY.md",
+  "privacy_policy_chrome": "https://github.com/Moss550wai/liubai-x/blob/main/store/chrome/PRIVACY.md",
+  "search_terms": [
+    "X",
+    "Twitter",
+    "中文回复",
+    "模板回复",
+    "本地过滤",
+    "阅读"
+  ],
+  "reviewer_notes": "No extension-service account or API key is required. Open an X post-detail page with loaded Chinese text replies, using your own authorized X access if X asks for sign-in. The root post and normal replies stay native. Scroll to the bottom for the expand-all collection. Test the strength popup, allowlist, and correction export. No account blocking or posting is automated. The local data handling and passive parent-ID reader are described in the privacy policy. A synthetic, credential-free regression fixture and instructions are in qa/README.md in the source repository. Store screenshots use labelled synthetic demonstration content, not accuracy measurements.",
+  "publisher_fields": "Publisher legal/contact information must come from the user or existing verified developer profile; never fabricate."
+}
