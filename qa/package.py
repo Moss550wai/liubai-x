@@ -13,12 +13,12 @@ assert any('600-reply stress' in s for s in q['checks'])
 assert manifest['permissions']==['storage']
 version=manifest['version']
 live=json.loads((ROOT/'live-tray-1.0.3.json').read_text(encoding='utf-8'))
-assert live['version']=='1.0.3' and version in ('1.0.3','1.0.4') and not live['extensionErrors']
+assert live['version']=='1.0.3' and version in ('1.0.3','1.0.4','1.0.5') and not live['extensionErrors']
 assert (EXT/'model-data.js').read_text(encoding='utf-8').find('af671420a645e4bbba5a2d39ae1b1fd566d689727bd12f435352ca0ff62acb45')>=0
 f=lambda n:f'{n:.2f}'
 report=f'''# 留白 {version} 回归记录
 
-日期：2026-11-20。1.0.4 为公开发布与文档整理，运行逻辑沿用 1.0.3；本次重跑离线检查。模型、清洗方法、默认阈值 0.30 与三档取点未修改。
+日期：2026-11-20。1.0.4 整理公开发布文档，1.0.5 补充商店简体中文语言元数据；运行逻辑沿用 1.0.3，本次重跑离线检查。模型、清洗方法、默认阈值 0.30 与三档取点未修改。
 
 ## 行为
 
@@ -53,7 +53,7 @@ report=f'''# 留白 {version} 回归记录
 
 ## 真实 X 与历史证据
 
-沿用 v{live['version']} 在隔离 Chromium 中对一个公开 X 帖子的只读实机记录，不把它称为 1.0.4 新实机检查。归集 {live['initial']['hiddenCells']} 条，默认只有一个按钮、零条目行；一次展开显示 {live['opened']['entries']} 条完整已读文字。隐藏容器测量高度全部为 0，可见帖子之间最大空隙 {live['layout']['largestGapPx']} px，原位置插件控件为 0。真实页面自身产生 {len(live['pageErrors'])} 次 UsersByRestIds HTTP 403，原始错误单列于 live-tray-1.0.3.json，不算扩展零错误；没有修改账号关系。
+沿用 v{live['version']} 在隔离 Chromium 中对一个公开 X 帖子的只读实机记录，不把它称为当前版本的新实机检查。归集 {live['initial']['hiddenCells']} 条，默认只有一个按钮、零条目行；一次展开显示 {live['opened']['entries']} 条完整已读文字。隐藏容器测量高度全部为 0，可见帖子之间最大空隙 {live['layout']['largestGapPx']} px，原位置插件控件为 0。真实页面自身产生 {len(live['pageErrors'])} 次 UsersByRestIds HTTP 403，原始错误单列于 live-tray-1.0.3.json，不算扩展零错误；没有修改账号关系。
 
 本版截图为 screenshots/collection-*.png、screenshots/author-parent-folds.png 和 screenshots/live-tray-1.0.3-*.png。live-results.json 及旧 live-desktop.png 等为历史实机证据，replies-*.png 为旧展示方式，不作为本版效果图。模型参数与评分逻辑保持不变；此前分类参考见 thresholds.md。
 
@@ -67,7 +67,7 @@ report=f'''# 留白 {version} 回归记录
 
 '''+''.join('- '+s+'\n' for s in q['checks'])
 (ROOT/'test-report.md').write_text(report,encoding='utf-8')
-files=sorted(p for p in EXT.rglob('*') if p.is_file())+[ROOT/n for n in ['README.md','INSTALL.md','CHANGELOG.md','thresholds.md','test-report.md']]+sorted((ROOT/'docs').glob('*.md'))+[ROOT/'screenshots/live-tray-1.0.3-closed.png']
+files=sorted(p for p in EXT.rglob('*') if p.is_file())+[ROOT/n for n in ['README.md','INSTALL.md','CHANGELOG.md','PRIVACY.md','store/edge/PRIVACY.md','store/chrome/PRIVACY.md','thresholds.md','test-report.md']]+sorted((ROOT/'docs').glob('*.md'))+[ROOT/'screenshots/live-tray-1.0.3-closed.png']
 archive=ROOT/f'liubai-chrome-edge-v{version}.zip'
 with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
     for p in files:z.write(p,p.relative_to(ROOT).as_posix())

@@ -6,6 +6,9 @@ STORE=ROOT/'store'
 EXT=ROOT/'extension'
 manifest=json.loads((EXT/'manifest.json').read_text(encoding='utf-8'))
 assert manifest['manifest_version']==3
+assert manifest['default_locale']=='zh_CN'
+messages=json.loads((EXT/'_locales/zh_CN/messages.json').read_text(encoding='utf-8'))
+assert manifest['name']=='__MSG_extensionName__' and messages['extensionName']['message']=='留白 · X 回复筛'
 assert manifest['permissions']==['storage']
 assert all(script['matches']==['https://x.com/*','https://twitter.com/*'] for script in manifest['content_scripts'])
 files=sorted(p for p in EXT.rglob('*') if p.is_file())

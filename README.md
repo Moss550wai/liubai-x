@@ -1,11 +1,11 @@
-# 留白 · X 回复筛 1.0.4
+# 留白 · X 回复筛 1.0.5
 
 
 **[下载安装包](https://github.com/Moss550wai/liubai-x/releases/latest)** · [压缩包安装与使用](INSTALL.md) · [开发全过程](docs/DEVELOPMENT.md) · [实验记录](docs/EXPERIMENTS.md) · [实现结构](docs/ARCHITECTURE.md)
 
 ![底部统一入口](screenshots/live-tray-1.0.3-closed.png)
 
-1.0.4 是公开发布整理：筛选行为沿用 1.0.3，补齐开发过程、安装教程和发行包内容。下载后加载 `extension` 文件夹即可使用。
+1.0.5 补充商店简体中文语言声明，筛选行为沿用 1.0.3；商店提交与审核状态以后台为准。下载后加载 `extension` 文件夹即可使用。
 
 默认激进（阈值 0.30），沿用原有字符模型。所有分类在本机 CPU 完成，无接口、无密钥、无模型下载。
 

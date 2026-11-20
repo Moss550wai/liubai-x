@@ -1,6 +1,6 @@
 {
   "name": "留白 · X 回复筛",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "primary_locale": "zh-CN",
   "category_suggestion": "Productivity",
   "short_description": "在本机折叠 X 的模板回复。可展开、可调强度，给注意力留一点白。",

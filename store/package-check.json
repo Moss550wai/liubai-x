@@ -1,10 +1,10 @@
 {
-  "version": "1.0.4",
+  "version": "1.0.5",
   "validation_scope": "package validation only; no store approval implied",
-  "archive": "liubai-store-v1.0.4.zip",
-  "bytes": 112708,
-  "sha256": "34fa79aa2dbb763cbf0a3a378d38e7c6210000a7f7d17c54f7af00c03a6ae9a4",
-  "runtime_files": 15,
+  "archive": "liubai-store-v1.0.5.zip",
+  "bytes": 112934,
+  "sha256": "62fa77b31c5c2aac8456031378288a69a1a6c93c5cdf9df36bc8d0c5ce6392ee",
+  "runtime_files": 16,
   "same_runtime_bytes_as_extension": true,
   "assets": {
     "logo-300.png": {

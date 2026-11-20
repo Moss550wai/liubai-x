@@ -2,7 +2,7 @@
 
 准备日期：2026-11-20。此目录记录提交准备，**不表示已通过审核或已上线**。实际状态以开发者后台为准。
 
-- `liubai-store-v1.0.4.zip`：商店上传包，manifest.json 在 ZIP 根目录，只含 extension 的运行文件。不要上传手动安装版的外层文档包。
+- `liubai-store-v1.0.5.zip`：商店上传包，manifest.json 在 ZIP 根目录，只含 extension 的运行文件。不要上传手动安装版的外层文档包。
 - `listing.json`、`LISTING.zh-CN.txt`：标题、说明、单一用途、权限及数据处理解释。
 - `edge/PRIVACY.md` / `chrome/PRIVACY.md`：对应浏览器的公开隐私声明。
 - `assets/`：1280×800 截图、300×300 logo、440×280 小推广图。截图为带标记的合成示例，展示实际扩展界面，不代表准确率。
@@ -20,3 +20,5 @@
 - [Edge 发布与素材尺寸](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension)
 - [Chrome 注册](https://developer.chrome.com/docs/webstore/register)
 - [Chrome 本地数据也须披露](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq)
+
+1.0.5 在 manifest 中声明 `default_locale: zh_CN` 并使用名称/描述消息引用，使商店识别简体中文。界面素材来源于 1.0.4 的实际扩展演示；1.0.5 仅更改语言元数据。

@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "留白 · X 回复筛",
-  "version": "1.0.4",
+  "name": "__MSG_extensionName__",
+  "version": "1.0.5",
+  "default_locale": "zh_CN",
   "minimum_chrome_version": "120",
-  "description": "在本机折叠 X 的模板回复。可展开、可调强度，给注意力留一点白。",
+  "description": "__MSG_extensionDescription__",
   "permissions": ["storage"],
   "background": {"service_worker": "background.js"},
   "action": {"default_title": "留白 · 回复过滤", "default_popup": "popup.html"},

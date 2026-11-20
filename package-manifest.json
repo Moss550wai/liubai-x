@@ -1,9 +1,14 @@
 {
-  "version": "1.0.4",
-  "archive": "liubai-chrome-edge-v1.0.4.zip",
-  "archive_bytes": 137084,
-  "archive_sha256": "c096d2c0db597e4128b188cb0bbf4ecdbf6c1f28d3672c0cc19ee55321e32875",
+  "version": "1.0.5",
+  "archive": "liubai-chrome-edge-v1.0.5.zip",
+  "archive_bytes": 142505,
+  "archive_sha256": "bc404ef3611b87a9444179bf109fed960655854c8c028eeb257d24020de04fa4",
   "files": [
+    {
+      "path": "extension/_locales/zh_CN/messages.json",
+      "bytes": 193,
+      "sha256": "41afe12b22c73d925266a55267ccff5ce072227527a2a0e4a752956a47a9e727"
+    },
     {
       "path": "extension/background.js",
       "bytes": 4115,
@@ -46,8 +51,8 @@
     },
     {
       "path": "extension/manifest.json",
-      "bytes": 966,
-      "sha256": "9346b8273d9d9bc3ceedee243f74833b4760ea4e0b12a19360a19378b5178266"
+      "bytes": 934,
+      "sha256": "383106de4508a2950d5d3081df440020701438c4e6ca088531450b939587a88f"
     },
     {
       "path": "extension/model-data.js",
@@ -81,18 +86,33 @@
     },
     {
       "path": "README.md",
-      "bytes": 6100,
-      "sha256": "3807d30db8ffdf6aa3a1f9a97f9e01f6f372237aa279642346cb497d65941963"
+      "bytes": 6106,
+      "sha256": "6cbadfe092516306a91d1d4c0324388e46a818825e8177eceee2a74d4a8e2902"
     },
     {
       "path": "INSTALL.md",
-      "bytes": 5204,
-      "sha256": "caf82bd0d490602928f6f0c9a0780c882ef1bda37c0477bf3f888b1e5050b9d4"
+      "bytes": 5198,
+      "sha256": "3c41c5aa3ac50b9cd3aa44b3b4c3d839efe51a392aea5711990441ed10fe9866"
     },
     {
       "path": "CHANGELOG.md",
-      "bytes": 3151,
-      "sha256": "383d2e466cdce925d20425a172be266c960ba038ead19306e51f77abbff9f007"
+      "bytes": 3488,
+      "sha256": "35f2bee3858228cef21b616efb0e6667f19b9967d581958d6fd5f5d50702c195"
+    },
+    {
+      "path": "PRIVACY.md",
+      "bytes": 582,
+      "sha256": "92968fac1954463ab6e99328f6401dc287fe9a7985afc74adb6bd0bcfb1ac500"
+    },
+    {
+      "path": "store/edge/PRIVACY.md",
+      "bytes": 3800,
+      "sha256": "9c525ff2c8f8048050ea30fc9d936afbb4fe2f448d9936b028d290dde831d1ba"
+    },
+    {
+      "path": "store/chrome/PRIVACY.md",
+      "bytes": 3878,
+      "sha256": "c921c3b41bba0ab5a0eff86f6b0953dc34991cab539ca81a3dfdc477f709b22f"
     },
     {
       "path": "thresholds.md",
@@ -101,8 +121,8 @@
     },
     {
       "path": "test-report.md",
-      "bytes": 5966,
-      "sha256": "a765af97cd82c106bb2fa16103c175cfa84c89deebd59ce29fdfa1ee9012281b"
+      "bytes": 6018,
+      "sha256": "211c90894b9c1add2208c8fe60cba47b4cedb74f091dbcdbd989f507115e254d"
     },
     {
       "path": "docs/ARCHITECTURE.md",

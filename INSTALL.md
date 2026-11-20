@@ -1,10 +1,10 @@
 # 留白：压缩包安装与使用
 
-适用：桌面 Chrome / Microsoft Edge。无需 Python、Node、GPU、API Key 或模型下载。当前发布版为 1.0.4，筛选行为与 1.0.3 相同，补齐公开仓库文档和安装包资料。
+适用：桌面 Chrome / Microsoft Edge。无需 Python、Node、GPU、API Key 或模型下载。当前发布版为 1.0.5，筛选行为与 1.0.3 相同，补充商店简体中文语言声明。
 
 ## 1. 下载正确的文件
 
-打开 [GitHub 最新发布页](https://github.com/Moss550wai/liubai-x/releases/latest)，在 Assets 下载 `liubai-chrome-edge-v1.0.4.zip`。
+打开 [GitHub 最新发布页](https://github.com/Moss550wai/liubai-x/releases/latest)，在 Assets 下载 `liubai-chrome-edge-v1.0.5.zip`。
 
 建议下载这个安装包。GitHub 自动生成的 `Source code (zip)` 是整个开发仓库，也能找到 `extension` 目录，但包含更多历史资料。
 
