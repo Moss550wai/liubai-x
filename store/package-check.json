@@ -1,6 +1,6 @@
 {
   "version": "1.0.4",
-  "store_approval": "not_submitted",
+  "validation_scope": "package validation only; no store approval implied",
   "archive": "liubai-store-v1.0.4.zip",
   "bytes": 112708,
   "sha256": "34fa79aa2dbb763cbf0a3a378d38e7c6210000a7f7d17c54f7af00c03a6ae9a4",

@@ -22,6 +22,6 @@ for name,expected in sizes.items():
     data=(STORE/'assets'/name).read_bytes()
     assert data[:8]==b'\x89PNG\r\n\x1a\n' and struct.unpack('>II',data[16:24])==expected
 sha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()
-record={'version':manifest['version'],'store_approval':'not_submitted','archive':archive.name,'bytes':archive.stat().st_size,'sha256':sha(archive),'runtime_files':len(files),'same_runtime_bytes_as_extension':True,'assets':{name:{'dimensions':size,'sha256':sha(STORE/'assets'/name)} for name,size in sizes.items()}}
+record={'version':manifest['version'],'validation_scope':'package validation only; no store approval implied','archive':archive.name,'bytes':archive.stat().st_size,'sha256':sha(archive),'runtime_files':len(files),'same_runtime_bytes_as_extension':True,'assets':{name:{'dimensions':size,'sha256':sha(STORE/'assets'/name)} for name,size in sizes.items()}}
 (STORE/'package-check.json').write_text(json.dumps(record,ensure_ascii=False,indent=2),encoding='utf-8')
 print(json.dumps(record,ensure_ascii=False))
