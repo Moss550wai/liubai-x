@@ -15,7 +15,7 @@ function render(result){
   current=result.settings;document.body.classList.toggle('paused',!current.enabled);$('enabled').checked=current.enabled;$('status-text').textContent=current.enabled?'已启用':'已暂停';strength(current.threshold);
   $('feedback-count').textContent=result.feedbackCount;$('white-count').textContent=current.whitelist.length;
   const list=$('white-list');list.replaceChildren();
-  if(!current.whitelist.length){const p=document.createElement('p');p.className='empty';p.textContent='也可以在回复旁，一键加入白名单。';list.append(p)}
+  if(!current.whitelist.length){const p=document.createElement('p');p.className='empty';p.textContent='也可以在折叠提示旁，一键加入白名单。';list.append(p)}
   for(const account of current.whitelist){
     const row=document.createElement('div'),name=document.createElement('span'),remove=document.createElement('button');row.className='white-row';name.textContent='@'+account;remove.textContent='移除';remove.setAttribute('aria-label','移除 @'+account+' 的白名单');
     remove.onclick=()=>mutate({type:'white-remove',account},'已移出白名单');row.append(name,remove);list.append(row);

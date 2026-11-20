@@ -2,7 +2,7 @@
   'use strict';
   const HOST='[data-rs-host]',ARTICLE='article[data-testid="tweet"]';
   const states=new Map(),pending=new Set(),cache=new Map(),expanded=new Map(),knownReplies=new Map();
-  let settings={enabled:false,threshold:.30,whitelist:[]},route='',rootSeen=false,rootNode=null,discoverySeen=false,scheduled=false,dead=false;
+  let settings={enabled:false,threshold:.30,whitelist:[]},route='',rootSeen=false,rootNode=null,rootAccount='',discoverySeen=false,scheduled=false,dead=false;
   const metrics={scores:[],batches:[],processed:0,started:performance.now(),readyMs:null};
   const owners=new WeakMap(),sizes=new ResizeObserver(entries=>{for(const entry of entries){const article=owners.get(entry.target);if(article?.isConnected)article.style.setProperty('--rs-toolbar-height',Math.ceil(entry.borderBoxSize?.[0]?.blockSize||entry.contentRect.height)+'px')}});
 
@@ -12,11 +12,13 @@
   }
   function rootId(){return location.pathname.match(/^\/(?:[A-Za-z0-9_]+|i\/web)\/status\/(\d{1,24})(?:\/|$)/)?.[1]||''}
   function own(node,article){return node.closest('article')===article&&!node.closest('div[role="link"]')}
-  function extract(article) {
+  function accountOf(article) {
     const header=[...article.querySelectorAll('[data-testid="User-Name"]')].find(n=>own(n,article));
     const profile=header&&[...header.querySelectorAll('a[href]')].map(n=>n.getAttribute('href')).find(h=>/^\/[A-Za-z0-9_]{1,15}\/?$/.test(h));
-    if(!profile)return null;
-    const account=profile.replaceAll('/','').toLowerCase();
+    return profile?profile.replaceAll('/','').toLowerCase():'';
+  }
+  function extract(article) {
+    const account=accountOf(article);if(!account)return null;
     const time=[...article.querySelectorAll('time')].find(n=>own(n,article)&&new RegExp('^/'+account+'/status/\\d+(?:[/?]|$)','i').test(n.closest('a')?.getAttribute('href')||''));
     if(!time)return null;
     const id=time.closest('a').getAttribute('href').match(/\/status\/(\d+)/)[1];
@@ -42,13 +44,13 @@
     // Older ancestors in the thread must never be treated as replies.
     if(BigInt(data.id)<=BigInt(id))return false;
     if(rootNode?.isConnected&&!(rootNode.compareDocumentPosition(article)&Node.DOCUMENT_POSITION_FOLLOWING))return false;
-    if(!rootSeen)return false;
+    if(!rootSeen||!rootAccount||data.account===rootAccount)return false;
     if(discoverySeen&&!boundaries.length&&!knownReplies.has(data.id))return false;
     if(boundaries.some(n=>n.compareDocumentPosition(article)&Node.DOCUMENT_POSITION_FOLLOWING))return false;
     return true;
   }
   function forget(article) {const old=states.get(article);if(old){sizes.unobserve(old.host);article.removeAttribute('data-rs-folded');article.removeAttribute('data-rs-managed');article.style.removeProperty('--rs-toolbar-height');article.style.removeProperty('--rs-original-bottom');old.host.remove();states.delete(article)}}
-  function reset(){for(const a of states.keys())forget(a);pending.clear();knownReplies.clear();rootSeen=false;rootNode=null;discoverySeen=false}
+  function reset(){for(const a of states.keys())forget(a);pending.clear();knownReplies.clear();rootSeen=false;rootNode=null;rootAccount='';discoverySeen=false}
   function remember(map,key,value,limit){map.delete(key);map.set(key,value);if(map.size>limit)map.delete(map.keys().next().value)}
   function notice(state,text,error=false){const p=state.host.querySelector('.message');p.textContent=text;p.classList.toggle('error',error)}
   function palette() {
@@ -73,7 +75,7 @@
     controls.querySelector('.toggle').onclick=()=>{remember(expanded,data.id,!expanded.get(data.id),1000);render(state)};
     controls.querySelector('.white').onclick=async event=>{
       const button=event.currentTarget;button.disabled=true;
-      try{const remove=settings.whitelist.includes(data.account),result=await request({type:remove?'white-remove':'white-add',account:data.account});settings=result.settings;refresh();notice(state,remove?'已移出白名单':'已加入白名单，此账号总是保留')}catch(error){notice(state,error.message,true)}finally{button.disabled=false}
+      try{const result=await request({type:'white-add',account:data.account});settings=result.settings;refresh()}catch(error){notice(state,error.message,true)}finally{button.disabled=false}
     };
     controls.querySelector('.feedback').onclick=async event=>{
       const button=event.currentTarget;button.disabled=true;
@@ -82,13 +84,15 @@
     return state;
   }
   function render(state) {
-    const {article,data,host,score,bar}=state,white=settings.whitelist.includes(data.account),hit=score>=settings.threshold&&!white,folded=hit&&!expanded.get(data.id);
+    const {article,data,host,score,bar}=state,hit=score>=settings.threshold&&!settings.whitelist.includes(data.account);
+    if(!hit){forget(article);return}
+    const folded=!expanded.get(data.id);
     article.toggleAttribute('data-rs-folded',folded);bar.classList.toggle('unfolded',!folded);
-    host.querySelector('.label').textContent=folded?'已收起 @'+data.account+' 的回复':white?'留白 · 白名单':'留白';
+    host.querySelector('.label').textContent=(folded?'已收起 @':'已展开 @')+data.account+' 的回复';
     const toggle=host.querySelector('.toggle');toggle.hidden=!hit;toggle.textContent=folded?'展开':'收起';toggle.setAttribute('aria-expanded',String(!folded));
     const feedback=host.querySelector('.feedback');feedback.hidden=!hit;feedback.textContent=state.feedback?'已记下':'不该折叠';feedback.disabled=state.feedback;
-    const whiteButton=host.querySelector('.white');whiteButton.textContent=white?'已保留账号':'保留账号';whiteButton.setAttribute('aria-label',(white?'移出白名单 @':'总是保留 @')+data.account);whiteButton.title=white?'点击移出白名单':'总是保留 @'+data.account;
-    host.setAttribute('data-rs-state',folded?'folded':white?'white':'shown');
+    const whiteButton=host.querySelector('.white');whiteButton.setAttribute('aria-label','总是保留 @'+data.account);whiteButton.title='总是保留 @'+data.account;
+    host.setAttribute('data-rs-state',folded?'folded':'expanded');
   }
   function process(article,data,id,boundaries,colors,bottom) {
     if(!article.isConnected){forget(article);return}
@@ -100,6 +104,7 @@
     forget(article);
     let score=cache.get(data.modelKey);
     if(score===undefined){const start=performance.now();score=ReplyScorer.score(data.modelText);if(metrics.scores.length<5000)metrics.scores.push(performance.now()-start);remember(cache,data.modelKey,score,1000)}
+    if(score<settings.threshold||settings.whitelist.includes(data.account))return;
     const state=make(article,data,score,colors,bottom);render(state);metrics.processed++;
   }
   function flush() {
@@ -108,6 +113,10 @@
     if(route!==location.pathname){reset();route=location.pathname;scan();return}
     const primary=document.querySelector('[data-testid="primaryColumn"]');
     if(!rootNode?.isConnected){rootNode=[...(primary?.querySelectorAll('time')||[])].find(n=>own(n,n.closest('article'))&&new RegExp('/status/'+id+'(?:[/?]|$)').test(n.closest('a')?.getAttribute('href')||''))?.closest(ARTICLE)||null;if(rootNode)rootSeen=true}
+    if(rootNode?.isConnected){
+      const account=accountOf(rootNode);
+      if(account&&account!==rootAccount){rootAccount=account;primary.querySelectorAll(ARTICLE).forEach(a=>pending.add(a))}
+    }
     const boundaries=[...(primary?.querySelectorAll('h2,[role="heading"]')||[])].filter(n=>/^(发现更多|探索更多|更多帖子|相关帖子|为你推荐|Discover more|More posts|Related posts|You might like)$/i.test(n.textContent.trim()));
     if(boundaries.length)discoverySeen=true;
     // Read a small batch before writing any controls, avoiding one layout per reply.
@@ -142,7 +151,7 @@
   // Poll only the route; X changes history without a full document navigation.
   const routeTimer=setInterval(()=>{if(route!==location.pathname){reset();route=location.pathname;scan()}},500);
   chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&changes.settings){settings={...settings,...changes.settings.newValue};refresh()}});
-  chrome.runtime.onMessage.addListener((msg,sender,reply)=>{if(sender.id===chrome.runtime.id&&msg?.type==='metrics')reply({...metrics,active:states.size,cacheSize:cache.size,threshold:settings.threshold,rootSeen})});
+  chrome.runtime.onMessage.addListener((msg,sender,reply)=>{if(sender.id===chrome.runtime.id&&msg?.type==='metrics')reply({...metrics,active:states.size,cacheSize:cache.size,threshold:settings.threshold,rootSeen,rootAccount})});
   function shutdown(){clearInterval(routeTimer);observer.disconnect();themeObserver.disconnect();sizes.disconnect();colorScheme.removeEventListener('change',recolor);dead=true;reset()}
   window.addEventListener('pagehide',event=>{if(!event.persisted)shutdown()});
   window.addEventListener('pageshow',event=>{if(event.persisted)request({type:'get'}).then(result=>{settings=result.settings;refresh();recolor()}).catch(shutdown)});

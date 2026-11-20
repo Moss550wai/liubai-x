@@ -30,7 +30,11 @@ async function scroll(page){
   result.environment.chromium=context.browser()?.version()||'persistent Chromium';
   await context.addInitScript(observeStartup);
   context.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
-  await context.route('https://x.com/**',route=>route.fulfill({contentType:'text/html',body:html(route.request().url().includes('loadtest')?600:0)}));
+  await context.route('https://x.com/**',route=>{
+   let body=html(route.request().url().includes('loadtest')?600:0);
+   if(route.request().url().includes('root-metadata'))body=body.replace(article(rows[1]),article({...rows[1],missing:true,quote:true}).replace('data-testid="User-Name"','data-testid="pending-name"'));
+   return route.fulfill({contentType:'text/html',body});
+  });
   context.on('request',r=>{if(/^https?:/.test(r.url()))remote.push(r.url())});
   const worker=context.serviceWorkers()[0]||await context.waitForEvent('serviceworker'),id=new URL(worker.url()).host;
   const popup=await context.newPage();await popup.setViewportSize({width:368,height:780});await popup.goto('chrome-extension://'+id+'/popup.html');
@@ -46,10 +50,29 @@ async function scroll(page){
   assert.ok(tabId,'content script metrics reachable');
   await check('default aggressive, text-only scope, root/ancestors/quotes/ads/media/recommendations preserved',async()=>{
    assert.equal((await get()).settings.threshold,.3);
-   for(const n of [999,1000,1005,1006,900000])assert.equal(await host(n).count(),0);
-   assert.equal(await host(1004).count(),1);
+   for(const n of [999,1000,1002,1004,1005,1006,1007,1008,900000])assert.equal(await host(n).count(),0);
    assert.equal(await a(1003).getAttribute('data-rs-folded'),'');
    assert.equal(await a(1003).locator('.tweet').isVisible(),false);
+  });
+  await check('root-author replies and normal replies keep native markup without badges or toolbar spacing',async()=>{
+   assert.ok(scorer.score(rows.find(r=>r.id==='1007').text)>.3);
+   for(const n of [1002,1004,1007,1008]){assert.equal(await host(n).count(),0);assert.equal(await a(n).getAttribute('data-rs-managed'),null);assert.equal(await a(n).getAttribute('data-rs-folded'),null);assert.equal(await a(n).evaluate(a=>a.style.getPropertyValue('--rs-toolbar-height')),'')}
+  });
+  await check('root author survives virtualization and is reset when the detail route changes',async()=>{
+   await a(1000).evaluate(n=>n.remove());
+   await page.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),article({id:'1010',account:'TESTAUTHOR',text:rows[2].text})+article({id:'1011',account:'another_reader',text:rows[2].text}));
+   await host(1011).waitFor();assert.equal(await host(1010).count(),0);
+   await a(999).evaluate((n,markup)=>n.insertAdjacentHTML('afterend',markup),article(rows[1]));
+   await page.evaluate(()=>history.pushState({},'','/helpful_dev/status/1003'));await host(1007).waitFor();assert.equal(await host(1003).count(),0);
+   await page.evaluate(()=>history.pushState({},'','/testauthor/status/1000'));await host(1003).waitFor();await page.waitForFunction(()=>!document.querySelector('[data-fixture-id="1007"] [data-rs-host]'));assert.equal(await host(1008).count(),0);
+  });
+  await check('missing root text, quoted authors and delayed root headers cannot fold the original author',async()=>{
+   const metadata=await context.newPage();await metadata.goto('https://x.com/i/web/status/1000?root-metadata');await metadata.waitForTimeout(200);assert.equal(await metadata.locator('[data-rs-host]').count(),0);
+   await metadata.locator('[data-testid=pending-name]').evaluate(n=>{const header=n.cloneNode(true);header.dataset.testid='User-Name';n.replaceWith(header)});
+   await metadata.locator('[data-fixture-id="1001"] [data-rs-host]').waitFor();
+   for(const n of [1007,1008])assert.equal(await metadata.locator('[data-fixture-id="'+n+'"] [data-rs-host]').count(),0);
+   await metadata.evaluate(markup=>document.querySelector('h2').insertAdjacentHTML('beforebegin',markup),article({id:'1012',account:'quoteauthor',text:rows[2].text}));
+   await metadata.locator('[data-fixture-id="1012"] [data-rs-host]').waitFor();await metadata.close();
   });
   await page.screenshot({path:path.join(out,'screenshots/replies-folded.png'),fullPage:true});
   await check('one-click expand and refold retain original content',async()=>{
@@ -61,17 +84,18 @@ async function scroll(page){
   });
   await check('X replacing article classes cannot drop the fold state or toolbar spacing',async()=>{
    await a(1003).evaluate(a=>a.className='native-hover-state');assert.equal(await a(1003).getAttribute('data-rs-folded'),'');assert.equal(await a(1003).locator('.tweet').isVisible(),false);
-   await a(1002).evaluate(a=>a.className='native-hover-state');assert.equal(await a(1002).getAttribute('data-rs-managed'),'');
+   await a(1002).evaluate(a=>a.className='native-hover-state');assert.equal(await a(1002).getAttribute('data-rs-managed'),null);
   });
   await check('recommendations stay unfiltered after their heading is removed by virtualization',async()=>{
    await page.evaluate(newHTML=>{document.querySelector('h2').remove();document.querySelector('[data-fixture-id="900000"]').outerHTML=newHTML},article({id:'900001',account:'another_post',text:rows[2].text}));
    await page.waitForTimeout(100);assert.equal(await host(900001).count(),0);
    await a(900001).evaluate(a=>{const heading=document.createElement('h2');heading.textContent='发现更多';a.before(heading)});
   });
-  await check('toolbar stays below native content even when the article is a horizontal flex container',async()=>{
+  await check('normal flex replies have no extra spacing; expanded folds keep controls below native content',async()=>{
    await a(1002).evaluate(a=>{a.style.display='flex';a.style.gap='12px';a.querySelector('.tweet').style.display='contents';a.querySelector('.body').style.width='0px'});await page.waitForTimeout(60);
-   const boxes=await a(1002).evaluate(a=>({body:a.querySelector('.body').getBoundingClientRect().toJSON(),bar:a.querySelector('[data-rs-host]').getBoundingClientRect().toJSON()}));
-   assert.ok(boxes.bar.y>=boxes.body.bottom-1);assert.ok(boxes.body.width>300,'native flex body must not collapse into a narrow column');
+   assert.equal(await host(1002).count(),0);assert.ok(await a(1002).locator('.body').evaluate(n=>n.getBoundingClientRect().width)>300,'native flex body must not collapse into a narrow column');
+   await host(1003).getByRole('button',{name:'展开',exact:true}).click();await page.waitForTimeout(60);
+   const boxes=await a(1003).evaluate(a=>({body:a.querySelector('.tweet').getBoundingClientRect().toJSON(),bar:a.querySelector('[data-rs-host]').getBoundingClientRect().toJSON()}));assert.ok(boxes.bar.y>=boxes.body.bottom-1);await host(1003).getByRole('button',{name:'收起',exact:true}).click();
   });
   await check('feedback saved locally once, expands reply, export JSON includes text and explicit keep label',async()=>{
    await host(1003).getByRole('button',{name:'不该折叠',exact:true}).click();
@@ -82,9 +106,9 @@ async function scroll(page){
   });
   await check('one-click whitelist overrides model and persists across reload; removal restores filtering',async()=>{
    await host(1001).getByRole('button',{name:'总是保留 @example_ai',exact:true}).click();
-   await host(1001).getByText('留白 · 白名单',{exact:true}).waitFor();assert.ok((await get()).settings.whitelist.includes('example_ai'));
-   await page.reload();await host(1001).getByText('留白 · 白名单',{exact:true}).waitFor();assert.equal(await a(1001).locator('.tweet').isVisible(),true);
-   await host(1001).getByRole('button',{name:'移出白名单 @example_ai',exact:true}).click();
+   await page.waitForFunction(()=>!document.querySelector('[data-fixture-id="1001"] [data-rs-host]'));assert.ok((await get()).settings.whitelist.includes('example_ai'));
+   await page.reload();await host(1003).waitFor();assert.equal(await host(1001).count(),0);assert.equal(await a(1001).locator('.tweet').isVisible(),true);
+   await popup.getByRole('button',{name:'移除 @example_ai 的白名单',exact:true}).click();
    await page.waitForFunction(()=>document.querySelector('[data-fixture-id="1001"]').hasAttribute('data-rs-folded'));
   });
   await check('popup presets, slider, validation and normalized handles',async()=>{
@@ -113,8 +137,7 @@ async function scroll(page){
   });
   await check('virtualized article recycling does not leak author, fold state or feedback target',async()=>{
    await a(1001).evaluate((node,newHTML)=>{const box=document.createElement('div');box.innerHTML=newHTML;node.replaceChildren(...box.firstElementChild.childNodes);node.dataset.fixtureId='1100'},article({id:'1100',account:'new_reader',text:'哈哈哈'}));
-   await host(1100).getByRole('button',{name:'总是保留 @new_reader',exact:true}).waitFor();assert.equal(await a(1100).locator('.tweet').isVisible(),true);assert.equal(await host(1100).locator('.toggle').count(),1);assert.equal(await host(1100).locator('.toggle').isVisible(),false);
-   assert.equal(await host(1100).getByRole('button',{name:'总是保留 @example_ai',exact:true}).count(),0);
+   await page.waitForFunction(()=>!document.querySelector('[data-fixture-id="1100"]').hasAttribute('data-rs-managed'));assert.equal(await a(1100).locator('.tweet').isVisible(),true);assert.equal(await host(1100).count(),0);
   });
   await check('display-shortened URLs normalize using their actual link, without storing changed reply text',async()=>{
    const prefix=rows[2].text+' ',url='https://t.co/testlink123',expected=scorer.score(prefix+url);assert.ok(expected>.3);
@@ -129,16 +152,15 @@ async function scroll(page){
    await popup.emulateMedia({colorScheme:'dark',reducedMotion:'reduce'});await popup.locator('body').screenshot({path:path.join(out,'screenshots/popup-dark.png'),animations:'disabled'});
    await popup.locator('#enabled').focus();await popup.keyboard.press('Space');await popup.waitForTimeout(100);assert.equal((await get()).settings.enabled,false);await popup.keyboard.press('Space');await popup.waitForTimeout(100);
    await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(out,'screenshots/replies-narrow.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-   await page.emulateMedia({colorScheme:'dark'});await page.waitForTimeout(100);assert.equal(await host(1100).evaluate(h=>h.style.getPropertyValue('--rs-bg')),'#15202b');await page.screenshot({path:path.join(out,'screenshots/replies-dark.png'),fullPage:true});
+   await page.emulateMedia({colorScheme:'dark'});await page.waitForTimeout(100);assert.equal(await host(1004).evaluate(h=>h.style.getPropertyValue('--rs-bg')),'#15202b');await page.screenshot({path:path.join(out,'screenshots/replies-dark.png'),fullPage:true});
    await popup.emulateMedia({colorScheme:'light'});await page.emulateMedia({colorScheme:'light'});await page.setViewportSize({width:1280,height:900});
   });
   await check('plugin has no account block button or automatic X account action',async()=>{assert.equal(await page.getByRole('button',{name:'屏蔽账号 ↗',exact:true}).count(),0);assert.equal(await page.evaluate(()=>window.fixture.menuOpens),0);assert.equal(await page.evaluate(()=>window.fixture.articlePresses),0)});
   result.functionalMetrics=await metric(worker,tabId);
-  const load=await context.newPage();let t=performance.now();await load.goto('https://x.com/testauthor/status/1000?loadtest');await load.waitForFunction(()=>document.querySelectorAll('[data-rs-host]').length===604,{},{timeout:45000});
+  const load=await context.newPage();let t=performance.now();await load.goto('https://x.com/testauthor/status/1000?loadtest');
+  let loadId;const deadline=performance.now()+30000;
+  while(!loadId&&performance.now()<deadline){for(const tab of await worker.evaluate(()=>chrome.tabs.query({}))){try{const m=await metric(worker,tab.id);if(m.scores.length===604){loadId=tab.id;break}}catch{}}if(!loadId)await load.waitForTimeout(50)}
   result.largePageReadyMs=performance.now()-t;
-  const loadTab=(await worker.evaluate(()=>chrome.tabs.query({}))).find(t=>t.id!==tabId&&t.url?.includes('loadtest'));
-  let loadId=loadTab?.id;
-  if(!loadId)for(const tab of await worker.evaluate(()=>chrome.tabs.query({}))){try{const m=await metric(worker,tab.id);if(m.active===604){loadId=tab.id;break}}catch{}}
   assert.ok(loadId,'load page tab id');
   result.largePageMetrics=await metric(worker,loadId);
   result.inferenceMs=summarize(result.largePageMetrics.scores);result.processingBatchMs=summarize(result.largePageMetrics.batches);
@@ -156,7 +178,7 @@ async function scroll(page){
    const bare=await baseline.newPage();await bare.goto('https://x.com/testauthor/status/1000?loadtest');await bare.waitForLoadState('load');
    await bare.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));const nav=await bare.evaluate(()=>performance.getEntriesByType('navigation')[0].toJSON());result.withoutExtension={navigation:{domContentLoadedMs:nav.domContentLoadedEventEnd,loadMs:nav.loadEventEnd},startupLongTasks:await bare.evaluate(()=>window.__rsQALongTasks),scroll:await scroll(bare)};
   }finally{await baseline.close()}
-  result.httpRequests=remote;assert.ok(remote.every(u=>u.startsWith('https://x.com/testauthor/status/1000')));assert.deepEqual(errors,[]);checks.push('no runtime errors or extension-created remote service calls in offline fixtures');
+  result.httpRequests=remote;assert.ok(remote.every(u=>['/testauthor/status/1000','/i/web/status/1000'].includes(new URL(u).pathname)));assert.deepEqual(errors,[]);checks.push('no runtime errors or extension-created remote service calls in offline fixtures');
   fs.writeFileSync(path.join(out,'qa-results.json'),JSON.stringify(result,null,2));console.log(JSON.stringify({checks:checks.length,inference:result.inferenceMs,batch:result.processingBatchMs,scroll:result.scroll.frameMs,ready:result.largePageReadyMs}));
  }finally{await context.close()}
 })().catch(error=>{result.failure=error.stack;fs.writeFileSync(path.join(out,'qa-results.json'),JSON.stringify(result,null,2));console.error(error);process.exitCode=1});

@@ -11,6 +11,8 @@ const rows=[
  {id:'1004',account:'quoted_reply',text:'谢谢',quote:true},
  {id:'1005',account:'photo_only',text:'',missing:true},
  {id:'1006',account:'sponsored',text:'真正的效率革命，开启全新可能。',promoted:true},
+ {id:'1007',account:'TestAuthor',text:'说到底，技术的价值不在于堆砌参数，而在于真正落地解决问题。让工具回归工具，把注意力留给创造，这才是最值得关注的方向。'},
+ {id:'1008',account:'testauthor',text:'这才是真正的效率革命，工具回归工具本身，把时间留给创造，而不是参数的堆砌。'},
 ];
 function html(extra=0){
  const many=Array.from({length:extra},(_,i)=>({id:String(2000+i),account:'load_'+(i%100),text:rows[i%3+1].text+' '+i}));

@@ -1,8 +1,8 @@
 {
-  "version": "1.0.0",
-  "archive": "liubai-chrome-edge-v1.zip",
-  "archive_bytes": 117571,
-  "archive_sha256": "08ff032c118a7628c4f2b72efe7360c6ec97794fdbd2e78f8bdaf96e93a5c625",
+  "version": "1.0.1",
+  "archive": "liubai-chrome-edge-v1.0.1.zip",
+  "archive_bytes": 117580,
+  "archive_sha256": "7dd1abe47b14ee77433efb80d5a839e4c687ca4b7d0e543c0c99211fb30bd324",
   "files": [
     {
       "path": "extension/background.js",
@@ -16,8 +16,8 @@
     },
     {
       "path": "extension/content.js",
-      "bytes": 14172,
-      "sha256": "1d4e1617047c284851cc2de019b0564e9396c44d0147314a0a6e2ea3c3631d20"
+      "bytes": 14342,
+      "sha256": "be2f495ed46148970e15892bd788fc38de5db6a28f7f76d188f6928ba11d2759"
     },
     {
       "path": "extension/help.css",
@@ -26,8 +26,8 @@
     },
     {
       "path": "extension/help.html",
-      "bytes": 2497,
-      "sha256": "59de9f4e8666eb7f335f77d3fbe3a366f6bc0743aefe58a81ccd50149e0ad6f2"
+      "bytes": 2871,
+      "sha256": "56127a145c58be25656b78181d664c4138a435159f0e88d89f2e85a4589f7ed6"
     },
     {
       "path": "extension/icons/128.png",
@@ -47,7 +47,7 @@
     {
       "path": "extension/manifest.json",
       "bytes": 798,
-      "sha256": "68b2d9b099d4c3aed30ae36007e92782569b8cc53755b80d63842649fc76a4ef"
+      "sha256": "61672aacb964906e52f6ce1bfc04aaa20332d8d443d554dc3f2342a40e809ef1"
     },
     {
       "path": "extension/model-data.js",
@@ -61,13 +61,13 @@
     },
     {
       "path": "extension/popup.html",
-      "bytes": 2584,
-      "sha256": "fbbff396a905387fccb102b0f7940f12e08387836112567c0e675d7d0f448d1a"
+      "bytes": 2587,
+      "sha256": "1a13b5caa4b6a0fcd4e47e6d9a3d68a6cbf5354197bfb05b802a014e576c6bbb"
     },
     {
       "path": "extension/popup.js",
-      "bytes": 3894,
-      "sha256": "bef8cecc000b9a94939d29ec46fb8934d55c88803cb035ae596be04b9e2aee92"
+      "bytes": 3900,
+      "sha256": "25abb3778555459494ab599ff289e292850b0352ff1018aece65b3e8eff519f7"
     },
     {
       "path": "extension/scorer.js",
@@ -76,8 +76,13 @@
     },
     {
       "path": "README.md",
-      "bytes": 3013,
-      "sha256": "d2fe9f64f9ea81f6a4a13f4545dca2f871b4c07fb16df1d8a1a42c386a93bed3"
+      "bytes": 3972,
+      "sha256": "3957d1d0d41263507efdaf7c8ae1f486b471ef3d4b8ea6d08c033739a2322c7b"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 1178,
+      "sha256": "615f736c127ba2c1ac2ebfaedf874017e7d215a4c10fc73523d6b114404d1e4d"
     },
     {
       "path": "thresholds.md",
@@ -86,8 +91,8 @@
     },
     {
       "path": "test-report.md",
-      "bytes": 6592,
-      "sha256": "03ca5544abe31200466557f1b5209e396210d8dd574337a6f82d9f24e7323b10"
+      "bytes": 3908,
+      "sha256": "720ffe763b61e518ac8cc833f0aa6225894dbe345e7e9858078387da4257f01d"
     }
   ],
   "no_training": true,
